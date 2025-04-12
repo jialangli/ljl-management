@@ -1,0 +1,8 @@
+export const userPath = '/user'
+export const authPath = '/auth'
+export const departmentPath = '/department'
+export const salaryPath = '/salary'
+export const attendancePath = '/attendance'
+export const leavePath = '/leave'
+export const trainingPath = '/training'
+export const uploadPath = '/uploads'

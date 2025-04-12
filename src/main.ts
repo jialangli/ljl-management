@@ -1,15 +1,14 @@
-import 'normalize.css'
-import './assets/css/index.less'
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import App from './App.vue'
-import router from './router'
-import pinia from './store'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import 'normalize.css'
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
+import App from './App.vue'
+import './assets/css/index.less'
 import registerIcons from './global/register-icons'
-import * as echarts from 'echarts'
+import router from './router'
+import { LoginByPwdSvc } from './service/modules/auth/auth'
 
 const app = createApp(App)
 
@@ -22,3 +21,14 @@ app.use(registerIcons)
 app.use(router)
 app.use(ElementPlus)
 app.mount('#app')
+
+LoginByPwdSvc({
+  username: 'admin',
+  password: '123456',
+})
+  .then(res => {
+    console.log(res)
+  })
+  .catch(err => {
+    console.log(err)
+  })

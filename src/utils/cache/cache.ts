@@ -1,6 +1,6 @@
 enum CacheType {
   Local,
-  Session
+  Session,
 }
 
 class Cache {
@@ -32,7 +32,7 @@ class Cache {
   }
 }
 
-const localCache = new Cache(CacheType.Local)
-const sessionCache = new Cache(CacheType.Session)
+const localCache = new Cache(CacheType.Local) // 本地缓存
+const sessionCache = new Cache(CacheType.Session) // 会话缓存(当前会话有效)
 
 export { localCache, sessionCache }
