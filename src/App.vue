@@ -1,22 +1,16 @@
-<script setup lang="ts">
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
-</script>
-
 <template>
-  <router-view />
+  <router-view></router-view>
 </template>
 
+<script setup lang="ts">
+// 不需要任何逻辑，只需要显示路由内容
+</script>
+
 <style>
-html,
 body {
   margin: 0;
   padding: 0;
-  height: 100%;
-}
-
-#app {
-  height: 100%;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

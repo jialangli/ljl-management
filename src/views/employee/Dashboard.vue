@@ -1,295 +1,402 @@
 <template>
-  <div class="dashboard-container">
-    <h1>员工工作台</h1>
-    <p>欢迎使用SSM人事管理系统</p>
-    
-    <!-- 基本信息卡片 -->
-    <el-card class="info-card">
-      <div class="user-info">
-        <div class="avatar">
-          <el-avatar :size="80" :src="userAvatar">{{ userInitials }}</el-avatar>
+  <div class="employee-dashboard">
+    <!-- 欢迎卡片 -->
+    <el-card class="welcome-card">
+      <div class="welcome-content">
+        <div class="welcome-info">
+          <h2>欢迎回来，{{ userInfo.realName }}</h2>
+          <p class="time">{{ currentTime }}</p>
+          <p class="department">{{ userInfo.department }} | {{ userInfo.position }}</p>
         </div>
-        <div class="user-details">
-          <h2>{{ userInfo?.realName || userInfo?.username }}</h2>
-          <p>{{ userInfo?.department || '未分配部门' }} | {{ userInfo?.position || '未分配职位' }}</p>
-          <p>工号: {{ userInfo?.id }}</p>
-        </div>
-        <div class="check-in">
-          <el-button 
-            type="primary" 
-            :disabled="checkedIn"
-            @click="handleCheckIn"
-          >
-            {{ checkedIn ? '已签到' : '今日签到' }}
-          </el-button>
+        <div class="welcome-image">
+          <img src="@/assets/welcome.png" alt="Welcome" />
         </div>
       </div>
     </el-card>
-    
-    <!-- 统计数据卡片 -->
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="8">
-        <el-card class="stat-card">
+
+    <!-- 数据概览卡片 -->
+    <el-row :gutter="20" class="data-overview">
+      <el-col :span="6">
+        <el-card shadow="hover">
           <template #header>
-            <div>
+            <div class="card-header">
+              <span>本月出勤</span>
               <el-icon><Calendar /></el-icon>
-              本月考勤
             </div>
           </template>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats.attendance }}</div>
-            <div class="stat-label">出勤天数</div>
+          <div class="card-content">
+            <span class="number">{{ statistics.attendance }}</span>
+            <span class="unit">天</span>
           </div>
         </el-card>
       </el-col>
-      
-      <el-col :span="8">
-        <el-card class="stat-card">
+      <el-col :span="6">
+        <el-card shadow="hover">
           <template #header>
-            <div>
+            <div class="card-header">
+              <span>剩余年假</span>
+              <el-icon><Timer /></el-icon>
+            </div>
+          </template>
+          <div class="card-content">
+            <span class="number">{{ statistics.annualLeave }}</span>
+            <span class="unit">天</span>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span>本月加班</span>
               <el-icon><Clock /></el-icon>
-              剩余年假
             </div>
           </template>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats.remainingLeave }}</div>
-            <div class="stat-label">天</div>
+          <div class="card-content">
+            <span class="number">{{ statistics.overtime }}</span>
+            <span class="unit">小时</span>
           </div>
         </el-card>
       </el-col>
-      
-      <el-col :span="8">
-        <el-card class="stat-card">
+      <el-col :span="6">
+        <el-card shadow="hover">
           <template #header>
-            <div>
-              <el-icon><Money /></el-icon>
-              本月加班
+            <div class="card-header">
+              <span>待审批</span>
+              <el-icon><Document /></el-icon>
             </div>
           </template>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats.overtimeHours }}</div>
-            <div class="stat-label">小时</div>
+          <div class="card-content">
+            <span class="number">{{ statistics.pending }}</span>
+            <span class="unit">条</span>
           </div>
         </el-card>
       </el-col>
     </el-row>
-    
-    <!-- 快捷操作区 -->
-    <div class="quick-actions">
-      <h2>快捷操作</h2>
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="action-card" @click="goToPage('/leave')">
-            <el-icon><Tickets /></el-icon>
-            <span>请假申请</span>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="action-card" @click="goToPage('/overtime')">
-            <el-icon><Timer /></el-icon>
-            <span>加班申请</span>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="action-card" @click="goToPage('/attendance')">
-            <el-icon><Document /></el-icon>
-            <span>考勤记录</span>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="action-card" @click="goToPage('/salary')">
-            <el-icon><Money /></el-icon>
-            <span>工资查询</span>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
-    
-    <!-- 通知公告 -->
-    <div class="announcements">
-      <h2>通知公告</h2>
-      <el-card>
-        <el-timeline>
-          <el-timeline-item
-            v-for="(activity, index) in activities"
-            :key="index"
-            :timestamp="activity.timestamp"
-            :type="activity.type"
-          >
-            {{ activity.content }}
-          </el-timeline-item>
-        </el-timeline>
-      </el-card>
-    </div>
+
+    <!-- 考勤打卡 -->
+    <el-card class="attendance-card">
+      <template #header>
+        <div class="card-header">
+          <span>考勤打卡</span>
+          <el-button type="primary" @click="handleCheckIn" :disabled="isCheckedIn">
+            {{ isCheckedIn ? '已打卡' : '打卡' }}
+          </el-button>
+        </div>
+      </template>
+      <div class="attendance-content">
+        <div class="time-display">
+          <div class="current-time">{{ currentTime }}</div>
+          <div class="date">{{ currentDate }}</div>
+        </div>
+        <div class="attendance-status">
+          <el-tag :type="getStatusType(attendanceStatus)">
+            {{ getStatusText(attendanceStatus) }}
+          </el-tag>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- 待办事项和通知 -->
+    <el-row :gutter="20" class="todo-notice">
+      <el-col :span="12">
+        <el-card class="todo-card">
+          <template #header>
+            <div class="card-header">
+              <span>待办事项</span>
+              <el-button type="text" @click="handleMoreTodo">
+                查看更多<el-icon class="el-icon--right"><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+          </template>
+          <el-table :data="todoList" style="width: 100%">
+            <el-table-column prop="title" label="事项" />
+            <el-table-column prop="deadline" label="截止时间" width="180" />
+            <el-table-column prop="status" label="状态" width="100">
+              <template #default="{ row }">
+                <el-tag :type="getTodoStatusType(row.status)">
+                  {{ getTodoStatusText(row.status) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+          </el-table>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="notice-card">
+          <template #header>
+            <div class="card-header">
+              <span>通知公告</span>
+              <el-button type="text" @click="handleMoreNotice">
+                查看更多<el-icon class="el-icon--right"><ArrowRight /></el-icon>
+              </el-button>
+            </div>
+          </template>
+          <el-timeline>
+            <el-timeline-item
+              v-for="notice in noticeList"
+              :key="notice.id"
+              :timestamp="notice.time"
+              :type="notice.type"
+            >
+              {{ notice.content }}
+            </el-timeline-item>
+          </el-timeline>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
-import { 
-  Calendar, 
-  Clock, 
-  Money, 
-  Tickets, 
-  Timer, 
-  Document 
+import {
+  Calendar,
+  Timer,
+  Clock,
+  Document,
+  ArrowRight
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
-const userStore = useUserStore()
 
 // 用户信息
-const userInfo = computed(() => userStore.userInfo)
-const userAvatar = computed(() => userInfo.value?.avatar || '')
-const userInitials = computed(() => {
-  const name = userInfo.value?.realName || userInfo.value?.username || ''
-  return name.substring(0, 2).toUpperCase()
+const userInfo = ref({
+  realName: '张三',
+  department: '技术部',
+  position: '高级工程师'
 })
 
-// 状态数据
-const checkedIn = ref(false)
-const stats = reactive({
+// 统计数据
+const statistics = ref({
   attendance: 18,
-  remainingLeave: 12,
-  overtimeHours: 6
+  annualLeave: 3,
+  overtime: 12,
+  pending: 2
 })
 
-// 通知数据
-const activities = [
+// 当前时间
+const currentTime = ref('')
+const currentDate = ref('')
+let timer: number
+
+const updateTime = () => {
+  const now = new Date()
+  currentTime.value = now.toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+  currentDate.value = now.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  })
+}
+
+onMounted(() => {
+  updateTime()
+  timer = setInterval(updateTime, 1000)
+})
+
+onUnmounted(() => {
+  clearInterval(timer)
+})
+
+// 考勤状态
+const isCheckedIn = ref(false)
+const attendanceStatus = ref('normal')
+
+const getStatusType = (status: string) => {
+  const types = {
+    normal: '',
+    late: 'warning',
+    early: 'danger',
+    absent: 'info'
+  }
+  return types[status] || 'info'
+}
+
+const getStatusText = (status: string) => {
+  const texts = {
+    normal: '正常',
+    late: '迟到',
+    early: '早退',
+    absent: '缺勤'
+  }
+  return texts[status] || '未知'
+}
+
+// 打卡处理
+const handleCheckIn = () => {
+  // TODO: 调用打卡接口
+  isCheckedIn.value = true
+  ElMessage.success('打卡成功')
+}
+
+// 待办事项
+const todoList = ref([
   {
-    content: '公司年度体检将于下周一开始，请各部门按照安排准时参加',
-    timestamp: '2023-10-15',
+    id: 1,
+    title: '完成项目周报',
+    deadline: '2024-03-20 18:00',
+    status: 'pending'
+  },
+  {
+    id: 2,
+    title: '参加部门会议',
+    deadline: '2024-03-21 14:00',
+    status: 'completed'
+  }
+])
+
+const getTodoStatusType = (status: string) => {
+  const types = {
+    pending: 'warning',
+    completed: 'success',
+    overdue: 'danger'
+  }
+  return types[status] || 'info'
+}
+
+const getTodoStatusText = (status: string) => {
+  const texts = {
+    pending: '待处理',
+    completed: '已完成',
+    overdue: '已逾期'
+  }
+  return texts[status] || '未知'
+}
+
+const handleMoreTodo = () => {
+  router.push('/employee/todo')
+}
+
+// 通知公告
+const noticeList = ref([
+  {
+    id: 1,
+    content: '关于五一劳动节放假安排的通知',
+    time: '2024-03-19 10:00',
     type: 'primary'
   },
   {
-    content: '本月团建活动将在本周五下午3点举行，请准时参加',
-    timestamp: '2023-10-10',
+    id: 2,
+    content: '公司年度体检安排',
+    time: '2024-03-18 14:30',
     type: 'success'
-  },
-  {
-    content: '人力资源部发布新版员工手册，请所有员工查阅',
-    timestamp: '2023-10-05',
-    type: 'info'
-  },
-  {
-    content: '系统将于本周六凌晨2点-4点进行维护升级，请提前安排工作',
-    timestamp: '2023-10-01',
-    type: 'warning'
   }
-]
+])
 
-// 处理签到
-const handleCheckIn = () => {
-  checkedIn.value = true
-  ElMessage.success('签到成功!')
-}
-
-// 跳转到指定页面
-const goToPage = (path: string) => {
-  router.push(path)
+const handleMoreNotice = () => {
+  router.push('/employee/notice')
 }
 </script>
 
 <style scoped>
-.dashboard-container {
+.employee-dashboard {
   padding: 20px;
 }
 
-h1, h2 {
+.welcome-card {
   margin-bottom: 20px;
+}
+
+.welcome-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.welcome-info h2 {
+  margin: 0;
+  font-size: 24px;
   color: #303133;
 }
 
-.info-card {
-  margin-bottom: 20px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-}
-
-.avatar {
-  margin-right: 20px;
-}
-
-.user-details {
-  flex: 1;
-}
-
-.user-details h2 {
-  margin: 0 0 10px 0;
-  font-size: 20px;
-}
-
-.user-details p {
-  margin: 5px 0;
+.welcome-info .time {
+  margin: 10px 0;
+  font-size: 16px;
   color: #606266;
 }
 
-.check-in {
-  margin-left: auto;
+.welcome-info .department {
+  margin: 0;
+  font-size: 14px;
+  color: #909399;
 }
 
-.stats-row {
+.welcome-image img {
+  width: 120px;
+  height: 120px;
+}
+
+.data-overview {
   margin-bottom: 20px;
 }
 
-.stat-card :deep(.el-card__header) {
+.card-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  font-weight: bold;
 }
 
-.stat-card :deep(.el-card__header) .el-icon {
-  margin-right: 8px;
-}
-
-.stat-content {
+.card-content {
   text-align: center;
   padding: 10px 0;
 }
 
-.stat-number {
-  font-size: 28px;
+.number {
+  font-size: 24px;
   font-weight: bold;
   color: #409EFF;
 }
 
-.stat-label {
-  margin-top: 5px;
-  color: #909399;
-}
-
-.quick-actions, .announcements {
-  margin-top: 30px;
-}
-
-.action-card {
-  height: 100px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.action-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-}
-
-.action-card .el-icon {
-  font-size: 28px;
-  margin-bottom: 10px;
-  color: #409EFF;
-}
-
-.action-card span {
+.unit {
   font-size: 14px;
+  color: #909399;
+  margin-left: 4px;
+}
+
+.attendance-card {
+  margin-bottom: 20px;
+}
+
+.attendance-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+}
+
+.time-display {
+  text-align: center;
+}
+
+.current-time {
+  font-size: 36px;
+  font-weight: bold;
+  color: #303133;
+}
+
+.date {
+  font-size: 14px;
+  color: #909399;
+  margin-top: 8px;
+}
+
+.todo-notice {
+  margin-bottom: 20px;
+}
+
+:deep(.el-timeline-item__content) {
+  color: #606266;
+}
+
+:deep(.el-button--text) {
+  padding: 0;
 }
 </style>

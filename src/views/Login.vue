@@ -1,149 +1,164 @@
 <template>
   <div class="login-container">
-    <el-card class="login-card">
-      <template #header>
-        <div class="card-header">
-          <span>SSM人事管理系统</span>
+    <div class="login-box">
+      <div class="login-header">
+        <h2>SSM人事管理系统</h2>
+        <div class="login-type-switch">
+          <el-radio-group v-model="loginType" size="large">
+            <el-radio-button label="admin">管理员登录</el-radio-button>
+            <el-radio-button label="employee">员工登录</el-radio-button>
+          </el-radio-group>
         </div>
-      </template>
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="80px"
-        class="login-form"
-      >
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
+      </div>
+
+      <el-form :model="loginForm" :rules="rules" ref="loginFormRef" class="login-form">
+        <el-form-item prop="username">
           <el-input
-            v-model="form.password"
+            v-model="loginForm.username"
+            :placeholder="loginType === 'admin' ? '管理员账号' : '员工工号'"
+            prefix-icon="User"
+          />
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input
+            v-model="loginForm.password"
             type="password"
-            placeholder="请输入密码"
-            show-password
+            placeholder="密码"
+            prefix-icon="Lock"
+            @keyup.enter="handleLogin"
           />
         </el-form-item>
         <el-form-item>
           <el-button
             type="primary"
-            @click="handleLogin"
+            :loading="loading"
             class="login-button"
-            :loading="userStore.loading"
+            @click="handleLogin"
           >
-            登录
+            {{ loading ? '登录中...' : '登录' }}
           </el-button>
         </el-form-item>
-        <div class="temp-login-buttons">
-          <el-button type="success" @click="handleTempAdminLogin">
-            管理临时登录
-          </el-button>
-          <el-button type="warning" @click="handleTempEmployeeLogin">
-            员工临时登录
-          </el-button>
-        </div>
       </el-form>
-    </el-card>
+
+      <div class="login-footer">
+        <p v-if="loginType === 'admin'">管理员默认账号：admin，密码：admin123</p>
+        <p v-else>员工请使用工号和密码登录</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, nextTick } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/user'
-import { addRoutes } from '@/router'
-import type { FormInstance } from 'element-plus'
+import { User, Lock } from '@element-plus/icons-vue'
+import axios from 'axios'
 
 const router = useRouter()
-const userStore = useUserStore()
-const formRef = ref<FormInstance>()
+const loginFormRef = ref()
+const loading = ref(false)
+const loginType = ref('admin') // 默认管理员登录
 
-const form = reactive({
+const loginForm = reactive({
   username: '',
   password: ''
 })
 
 const rules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度在3-20个字符之间', trigger: 'blur' }
+    { required: true, message: '请输入账号', trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 20, message: '密码长度在6-20个字符之间', trigger: 'blur' }
+    { required: true, message: '请输入密码', trigger: 'blur' }
   ]
 }
-
 const handleLogin = async () => {
-  if (!formRef.value) return
-  await formRef.value.validate(async (valid: boolean) => {
-    if (valid) {
-      try {
-        await userStore.loginAction(form)
-        router.replace('/')
-      } catch (error) {
-        console.error('登录失败:', error)
-        ElMessage.error('用户名或密码错误')
+  if (!loginFormRef.value) return
+
+  try {
+    await loginFormRef.value.validate()
+    loading.value = true
+
+    const apiUrl = 'http://47.115.160.54:28080/auth/login'
+
+    const res = await axios.post(apiUrl, {
+      username: loginForm.username,
+      password: loginForm.password,
+      userType: loginType.value
+    })
+
+    console.log('后端返回数据:', res.data)
+
+    // 判断登录是否成功
+    if (res.data && res.data.code === 200 && res.data.data && res.data.data.token) {
+      // 存储Token
+      localStorage.setItem('token', res.data.data.token)
+      // 其他存储
+      localStorage.setItem('userId', res.data.data.userId)
+      localStorage.setItem('username', res.data.data.username)
+      localStorage.setItem('realName', res.data.data.realName)
+      localStorage.setItem('role', res.data.data.role)
+      localStorage.setItem('userType', loginType.value)
+
+      ElMessage.success('登录成功')
+
+      // 根据角色跳转
+      if (loginType.value === 'admin') {
+        router.push('./admin')
+      } else {
+        router.push('./employee')
       }
+    } else {
+      // 登录失败，显示错误信息
+      ElMessage.error('登录失败：' + (res.data.message || '未知错误'))
     }
-  })
+  } catch (error: any) {
+    console.error('请求错误:', error)
+    if (error.response && error.response.data) {
+      ElMessage.error('登录失败：' + (error.response.data.message || error.response.statusText))
+    } else {
+      ElMessage.error('登录失败：' + error.message)
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
-const handleTempAdminLogin = () => {
-  userStore.setToken('admin-temp-token')
-  userStore.setUserInfo({
-    id: 1,
-    username: 'admin',
-    realName: '管理员',
-    role: 'admin',
-    createTime: new Date().toISOString(),
-    updateTime: new Date().toISOString()
-  })
-  const routes = addRoutes('admin')
-  console.log('添加的管理员路由:', routes)
-  ElMessage.success('管理员临时登录成功')
-  setTimeout(() => {
-    router.replace('/')
-  }, 300)
-}
-
-const handleTempEmployeeLogin = () => {
-  userStore.setToken('employee-temp-token')
-  userStore.setUserInfo({
-    id: 2,
-    username: 'employee',
-    realName: '员工',
-    role: 'employee',
-    createTime: new Date().toISOString(),
-    updateTime: new Date().toISOString()
-  })
-  const routes = addRoutes('employee')
-  console.log('添加的员工路由:', routes)
-  ElMessage.success('员工临时登录成功')
-  setTimeout(() => {
-    router.replace('/')
-  }, 300)
-}
 </script>
 
 <style scoped>
 .login-container {
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #f5f7fa;
+  background-image: url('../assets/img/login-bg.svg');
+  background-size: cover;
+  background-position: center;
 }
 
-.login-card {
+.login-box {
   width: 400px;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
-.card-header {
+.login-header {
   text-align: center;
-  font-size: 20px;
-  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.login-header h2 {
+  color: #1890ff;
+  margin-bottom: 20px;
+}
+
+.login-type-switch {
+  margin-bottom: 20px;
 }
 
 .login-form {
@@ -152,16 +167,25 @@ const handleTempEmployeeLogin = () => {
 
 .login-button {
   width: 100%;
+  height: 40px;
 }
 
-.temp-login-buttons {
-  display: flex;
-  justify-content: space-between;
+.login-footer {
   margin-top: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
 }
 
-.temp-login-buttons .el-button {
-  flex: 1;
-  margin: 0 5px;
+:deep(.el-input__wrapper) {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+:deep(.el-input__inner) {
+  height: 40px;
+}
+
+:deep(.el-radio-button__inner) {
+  padding: 8px 20px;
 }
 </style>

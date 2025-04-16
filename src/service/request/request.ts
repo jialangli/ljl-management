@@ -1,3 +1,5 @@
+// src/service/request.ts
+
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import axios from 'axios'
 
