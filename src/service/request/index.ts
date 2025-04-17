@@ -1,3 +1,4 @@
+import { router } from '@/router'
 import { localCache } from '@/utils/cache/cache'
 import { Account_TOKEN } from '@/utils/cache/keys'
 import { ElMessage } from 'element-plus'
@@ -20,12 +21,15 @@ function createSvcRequest(prefix = '') {
         return config
       },
 
-
-
-      
       // 处理服务器错误
       responseSuccessFn: res => {
-        if (res.data?.code !== 200) {
+        // 如果token过期 ,跳转登录页面并清除token
+        if (res.data?.code === 401) {
+          ElMessage({ type: 'info', message: '登录信息过期,请重新登录!!!' })
+          localStorage.removeItem('token')
+          localStorage.removeItem('userInfo')
+          router.push('/login')
+        } else if (res.data?.code !== 200) {
           const message = res.data?.message || '服务器请求错误!!!'
           ElMessage({ type: 'error', message: message })
           console.error(`Error: ${message}`)
@@ -40,8 +44,8 @@ function createSvcRequest(prefix = '') {
         ElMessage({ type: 'error', message })
         console.error('Network Error:', err)
         return Promise.reject(err) // 抛出网络错误
-      },
-    },
+      }
+    }
   })
 }
 
