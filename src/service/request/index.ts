@@ -1,8 +1,8 @@
-import  router  from '@/router'
+import router from '@/router'
 import { localCache } from '@/utils/cache/cache'
 import { Account_TOKEN, Account_USER } from '@/utils/cache/keys'
 import { ElMessage } from 'element-plus'
-import { BASE_URL, TIME_OUT } from '../config/index.ts'
+import { BASE_URL, TIME_OUT } from '../config/index'
 import NetRequest from './request'
 
 // 创建全局工厂实例
@@ -18,18 +18,17 @@ function createSvcRequest(prefix = '') {
         if (config.headers && token) {
           config.headers.Authorization = 'Bearer ' + token
         }
-        // console.log(config)
+
         return config
       },
 
       // 处理服务器错误
       responseSuccessFn: res => {
-
-        if (res.data?.code === 401 && res.status === 401) {
-          console.log(1111)
+        if (res.data?.code === 401 || res.status === 401) {
           ElMessage({ type: 'info', message: '登录信息过期,请重新登录!!!' })
-          localStorage.removeItem(Account_TOKEN)
-          localStorage.removeItem(Account_USER)
+
+          localCache.removeCache(Account_USER)
+          localCache.removeCache(Account_TOKEN)
           router.push('/login')
         } else if (res.data?.code !== 200) {
           const message = res.data?.message || '服务器请求错误!!!'

@@ -5,34 +5,41 @@
       <div class="logo">
         <h2>SSM人事管理系统</h2>
       </div>
-      <el-menu
-        :default-active="activeMenu"
-        class="sidebar-menu"
-        :router="true"
-        :collapse="isCollapse"
-      >
-      <el-menu-item index="/admin/dashboard">
-          <el-icon><House /></el-icon>
+      <el-menu :default-active="activeMenu" class="sidebar-menu" :router="true" :collapse="isCollapse">
+        <el-menu-item index="/admin/dashboard">
+          <el-icon>
+            <House />
+          </el-icon>
           <span>首页</span>
         </el-menu-item>
         <el-menu-item index="/admin/DepartmentList">
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
           <span>部门管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/EmployeeManagement">
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
           <span>员工管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/AttendanceManagement">
-          <el-icon><Calendar /></el-icon>
+          <el-icon>
+            <Calendar />
+          </el-icon>
           <span>考勤管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/LeaveManagement">
-          <el-icon><Timer /></el-icon>
+          <el-icon>
+            <Timer />
+          </el-icon>
           <span>请假管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/SystemSettings">
-          <el-icon><Setting /></el-icon>
+          <el-icon>
+            <Setting />
+          </el-icon>
           <span>系统设置</span>
         </el-menu-item>
       </el-menu>
@@ -44,7 +51,10 @@
       <div class="header">
         <div class="header-left">
           <el-button type="text" @click="toggleSidebar">
-            <el-icon><Fold v-if="!isCollapse" /><Expand v-else /></el-icon>
+            <el-icon>
+              <Fold v-if="!isCollapse" />
+              <Expand v-else />
+            </el-icon>
           </el-button>
         </div>
         <div class="header-right">
@@ -72,17 +82,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { localCache } from '@/utils/cache/cache'
+import { Account_TOKEN, Account_Type, Account_USER } from '@/utils/cache/keys'
 import {
-  User,
   Calendar,
-  Timer,
-  Setting,
+  Expand,
   Fold,
-  Expand
+  Setting,
+  Timer,
+  User
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { computed, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
@@ -106,9 +118,9 @@ const toggleSidebar = () => {
 const handleCommand = (command: string) => {
   if (command === 'logout') {
     // 清除本地存储的用户信息
-    localStorage.removeItem('token')
-    localStorage.removeItem('userType')
-    localStorage.removeItem('userInfo')
+    localCache.removeCache(Account_USER)
+    localCache.removeCache(Account_TOKEN)
+    localCache.removeCache(Account_Type)
 
     ElMessage.success('退出登录成功')
     router.push('/login')

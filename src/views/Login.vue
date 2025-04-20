@@ -13,28 +13,15 @@
 
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef" class="login-form">
         <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            :placeholder="loginType === 'admin' ? '管理员账号' : '员工工号'"
-            prefix-icon="User"
-          />
+          <el-input v-model="loginForm.username" :placeholder="loginType === 'admin' ? '管理员账号' : '员工工号'"
+            prefix-icon="User" />
         </el-form-item>
         <el-form-item prop="password">
-          <el-input
-            v-model="loginForm.password"
-            type="password"
-            placeholder="密码"
-            prefix-icon="Lock"
-            @keyup.enter="handleLogin"
-          />
+          <el-input v-model="loginForm.password" type="password" placeholder="密码" prefix-icon="Lock"
+            @keyup.enter="handleLogin" />
         </el-form-item>
         <el-form-item>
-          <el-button
-            type="primary"
-            :loading="loading"
-            class="login-button"
-            @click="handleLogin"
-          >
+          <el-button type="primary" :loading="loading" class="login-button" @click="handleLogin">
             {{ loading ? '登录中...' : '登录' }}
           </el-button>
         </el-form-item>
@@ -49,14 +36,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
-import { addRoutes } from '@/router'  // 确保路径正确
-import axios from 'axios'
-import { LoginByPwdSvc } from '@/service/modules/auth/auth'
-import { Account_TOKEN, Account_Type } from '@/utils/cache/keys'
+import { addRoutes } from '@/router'; // 确保路径正确
+import { LoginByPwdSvc } from '@/service/modules/auth/auth';
+import { localCache } from '@/utils/cache/cache';
+import { Account_TOKEN, Account_Type } from '@/utils/cache/keys';
+import { ElMessage } from 'element-plus';
+import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 const router = useRouter()
 const loginFormRef = ref()
 const loading = ref(false)
@@ -88,25 +74,24 @@ const handleLogin = async () => {
 
     if (res.code === 200 && res.data?.token) {
       // 存储 Token
-      localStorage.setItem(Account_TOKEN, res.data.token);
-      localStorage.setItem(Account_Type, loginType.value);
+      localCache.setCache(Account_TOKEN, res.data?.token)
+      localCache.setCache(Account_Type, loginType.value)
 
       // ✅ 动态添加路由
       addRoutes(loginType.value);
-      console.log("动态路由是否加载:", router.getRoutes()); // 检查是否有 /admin 或 /employee
+      // console.log("动态路由是否加载:", router.getRoutes()); // 检查是否有 /admin 或 /employee
       // ✅ 打印路由确认
-      console.log("当前路由:", router.getRoutes());
+      // console.log("当前路由:", router.getRoutes());
 
       // ✅ 跳转到具体路径（避免 /admin 无组件）
       const targetPath = loginType.value === 'admin'
         ? '/admin/dashboard'
         : '/employee/dashboard';
-      await router.push(targetPath); // 加 await 确保跳转完成
 
-      console.log("跳转完成");
+      await router.push(targetPath); // 加 await 确保跳转完成
       ElMessage.success('登录成功');
     } else {
-      ElMessage.error(res.data?.message || '登录失败');
+      ElMessage.error(res.message || '登录失败');
     }
   } catch (error) {
     console.error("跳转出错:", error); // 捕获路由跳转错误

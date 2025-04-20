@@ -6,7 +6,7 @@ import type {
   ILeaveListReq,
   ILeaveRequestReq,
   ILeaveRequestResp,
-  ILeaveStatusUpdateReq,
+  ILeaveStatusUpdateReq
 } from './types'
 
 // 创建请假服务实例
@@ -16,10 +16,10 @@ const leaveSvc = createSvcRequest(leavePath)
  * 获取请假列表
  * @param params 查询参数
  */
-export function getLeaveListSvc(params: ILeaveListReq) {
+export function getLeaveListSvc(params?: ILeaveListReq) {
   return leaveSvc.POST<NetResponse<ILeaveRequestResp[]>>({
     url: '/list',
-    data: params,
+    data: params
   })
 }
 
@@ -30,7 +30,7 @@ export function getLeaveListSvc(params: ILeaveListReq) {
 export function getPersonalLeaveListSvc(params: ILeaveListReq) {
   return leaveSvc.POST<NetResponse<ILeaveRequestResp[]>>({
     url: '/personal',
-    data: params,
+    data: params
   })
 }
 
@@ -41,7 +41,7 @@ export function getPersonalLeaveListSvc(params: ILeaveListReq) {
 export function submitLeaveRequestSvc(data: ILeaveRequestReq) {
   return leaveSvc.POST<NetResponse<null>>({
     url: '',
-    data,
+    data
   })
 }
 
@@ -53,6 +53,6 @@ export function submitLeaveRequestSvc(data: ILeaveRequestReq) {
 export function updateLeaveStatusSvc(id: number, data: ILeaveStatusUpdateReq) {
   return leaveSvc.PUT<NetResponse<null>>({
     url: `/${id}`,
-    data,
+    data
   })
 }
