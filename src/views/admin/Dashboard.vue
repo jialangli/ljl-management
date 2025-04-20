@@ -113,8 +113,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { User, Office, Calendar, Bell } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import { User, House, Calendar, Bell } from "@element-plus/icons-vue";
+import * as echarts from 'echarts';
 
 // 模拟数据
 const statistics = ref({
@@ -261,9 +261,14 @@ const initAttendanceChart = () => {
 
 // 监听窗口大小变化
 const handleResize = () => {
-  departmentChart?.resize()
-  attendanceChart?.resize()
+  if (departmentChart) {
+    departmentChart.resize()
+  }
+  if (attendanceChart) {
+    attendanceChart.resize()
+  }
 }
+
 
 onMounted(() => {
   initDepartmentChart()

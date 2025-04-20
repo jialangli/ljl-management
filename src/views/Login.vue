@@ -5,8 +5,8 @@
         <h2>SSM人事管理系统</h2>
         <div class="login-type-switch">
           <el-radio-group v-model="loginType" size="large">
-            <el-radio-button label="admin">管理员登录</el-radio-button>
-            <el-radio-button label="employee">员工登录</el-radio-button>
+            <el-radio-button value="admin">管理员登录</el-radio-button>
+            <el-radio-button value="employee">员工登录</el-radio-button>
           </el-radio-group>
         </div>
       </div>
@@ -53,13 +53,15 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
+import { addRoutes } from '@/router'  // 确保路径正确
 import axios from 'axios'
-
+import { LoginByPwdSvc } from '@/service/modules/auth/auth'
+import { Account_TOKEN, Account_Type } from '@/utils/cache/keys'
 const router = useRouter()
 const loginFormRef = ref()
 const loading = ref(false)
 const loginType = ref('admin') // 默认管理员登录
-
+// const apiUrl = 'http://47.115.160.54:28080/auth/login'
 const loginForm = reactive({
   username: '',
   password: ''
@@ -74,56 +76,45 @@ const rules = {
   ]
 }
 const handleLogin = async () => {
-  if (!loginFormRef.value) return
-
   try {
-    await loginFormRef.value.validate()
-    loading.value = true
+    await loginFormRef.value.validate();
+    loading.value = true;
 
-    const apiUrl = 'http://47.115.160.54:28080/auth/login'
 
-    const res = await axios.post(apiUrl, {
+    const res = await LoginByPwdSvc({
       username: loginForm.username,
       password: loginForm.password,
-      userType: loginType.value
-    })
+    });
 
-    console.log('后端返回数据:', res.data)
+    if (res.code === 200 && res.data?.token) {
+      // 存储 Token
+      localStorage.setItem(Account_TOKEN, res.data.token);
+      localStorage.setItem(Account_Type, loginType.value);
 
-    // 判断登录是否成功
-    if (res.data && res.data.code === 200 && res.data.data && res.data.data.token) {
-      // 存储Token
-      localStorage.setItem('token', res.data.data.token)
-      // 其他存储
-      localStorage.setItem('userId', res.data.data.userId)
-      localStorage.setItem('username', res.data.data.username)
-      localStorage.setItem('realName', res.data.data.realName)
-      localStorage.setItem('role', res.data.data.role)
-      localStorage.setItem('userType', loginType.value)
+      // ✅ 动态添加路由
+      addRoutes(loginType.value);
+      console.log("动态路由是否加载:", router.getRoutes()); // 检查是否有 /admin 或 /employee
+      // ✅ 打印路由确认
+      console.log("当前路由:", router.getRoutes());
 
-      ElMessage.success('登录成功')
+      // ✅ 跳转到具体路径（避免 /admin 无组件）
+      const targetPath = loginType.value === 'admin'
+        ? '/admin/dashboard'
+        : '/employee/dashboard';
+      await router.push(targetPath); // 加 await 确保跳转完成
 
-      // 根据角色跳转
-      if (loginType.value === 'admin') {
-        router.push('./admin')
-      } else {
-        router.push('./employee')
-      }
+      console.log("跳转完成");
+      ElMessage.success('登录成功');
     } else {
-      // 登录失败，显示错误信息
-      ElMessage.error('登录失败：' + (res.data.message || '未知错误'))
+      ElMessage.error(res.data?.message || '登录失败');
     }
-  } catch (error: any) {
-    console.error('请求错误:', error)
-    if (error.response && error.response.data) {
-      ElMessage.error('登录失败：' + (error.response.data.message || error.response.statusText))
-    } else {
-      ElMessage.error('登录失败：' + error.message)
-    }
+  } catch (error) {
+    console.error("跳转出错:", error); // 捕获路由跳转错误
+    ElMessage.error(error.message);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 </script>
 

@@ -3,21 +3,16 @@ import { LoginByPwdSvc } from '../../service/modules/auth/auth';
 import { getUserDetailSvc } from '../../service/modules/user/user';
 import type { IUserListResp } from '../../service/modules/user/types';
 import type { ILoginByPwdRequest } from '../../service/modules/auth/types';
-
-interface UserState {
-  token: string;
-  userInfo: IUserListResp | null;
-}
+import { Account_TOKEN, Account_USER } from '@/utils/cache/keys';
 
 export const useUserStore = defineStore('user', {
-  state: (): UserState => ({
-    token: localStorage.getItem('token') || '',
-    userInfo: JSON.parse(localStorage.getItem('userInfo') || 'null'),
+  state: () => ({
+    token: '',
+    userInfo: null as IUserListResp | null,
   }),
 
   getters: {
     isLoggedIn: (state) => !!state.token,
-    getUserRole: (state) => state.userInfo?.role,
   },
 
   actions: {
@@ -31,10 +26,6 @@ export const useUserStore = defineStore('user', {
         if (res.code === 200 && res.data?.token) {
           // 保存token
           this.setToken(res.data.token);
-
-          // 获取并保存用户信息
-          await this.fetchUserInfo();
-
           return true;
         }
         return false;
@@ -44,32 +35,21 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async fetchUserInfo(): Promise<void> {
-      try {
-        const res = await getUserDetailSvc();
-        if (res.data) {
-          this.setUserInfo(res.data);
-        }
-      } catch (error) {
-        console.error('获取用户信息失败:', error);
-      }
-    },
-
     setToken(token: string) {
       this.token = token;
-      localStorage.setItem('token', token);
+      localStorage.setItem(Account_TOKEN, token);
     },
 
     setUserInfo(userInfo: IUserListResp) {
       this.userInfo = userInfo;
-      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      localStorage.setItem(Account_USER, JSON.stringify(userInfo));
     },
 
     logout() {
       this.token = '';
       this.userInfo = null;
-      localStorage.removeItem('token');
-      localStorage.removeItem('userInfo');
+      localStorage.removeItem(Account_TOKEN);
+      localStorage.removeItem(Account_USER);
     }
   }
 });

@@ -11,23 +11,27 @@
         :router="true"
         :collapse="isCollapse"
       >
-        <el-menu-item index="/admin/department">
-          <el-icon><Office /></el-icon>
+      <el-menu-item index="/admin/dashboard">
+          <el-icon><House /></el-icon>
+          <span>首页</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/DepartmentList">
+          <el-icon><User /></el-icon>
           <span>部门管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/employees">
+        <el-menu-item index="/admin/EmployeeManagement">
           <el-icon><User /></el-icon>
           <span>员工管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/attendance">
+        <el-menu-item index="/admin/AttendanceManagement">
           <el-icon><Calendar /></el-icon>
           <span>考勤管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/leave">
+        <el-menu-item index="/admin/LeaveManagement">
           <el-icon><Timer /></el-icon>
           <span>请假管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/settings">
+        <el-menu-item index="/admin/SystemSettings">
           <el-icon><Setting /></el-icon>
           <span>系统设置</span>
         </el-menu-item>
@@ -72,7 +76,6 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  Office,
   User,
   Calendar,
   Timer,

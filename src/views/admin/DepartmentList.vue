@@ -64,18 +64,20 @@
       :title="dialogType === 'add' ? '新增部门' : '编辑部门'"
       width="500px"
     >
-      <el-form
+    <el-form
         ref="formRef"
         :model="form"
         :rules="rules"
         label-width="100px"
       >
-        <el-form-item label="部门名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入部门名称" />
+      <el-form-item label="部门名称" prop="name">
+          <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="部门主管" prop="manager">
-          <el-input v-model="form.manager" placeholder="请输入部门主管姓名" />
+
+        <el-form-item label="部门主管" prop="leaderName">
+          <el-input v-model="form.leaderName" />
         </el-form-item>
+
         <el-form-item label="部门描述" prop="description">
           <el-input
             v-model="form.description"
@@ -85,6 +87,7 @@
           />
         </el-form-item>
       </el-form>
+
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
@@ -98,46 +101,48 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
+import {
+  getDepartmentListSvc,
+  getDepartmentDetailSvc,
+  deleteDepartmentSvc,
+  addDepartmentSvc,
+  updateDepartmentSvc,
+  type IDepartmentListReq,
+  type IDepartmentResp,
+  type IDepartmentReq
+} from '@/service/modules/department/department'
 
 // 搜索关键词
 const searchKeyword = ref('')
 
 // 表格数据
 const loading = ref(false)
-const departmentList = ref([
-  {
-    id: 1,
-    name: '技术部',
-    manager: '张三',
-    employeeCount: 35,
-    createTime: '2024-03-20 10:00:00'
-  },
-  {
-    id: 2,
-    name: '人事部',
-    manager: '李四',
-    employeeCount: 20,
-    createTime: '2024-03-20 10:00:00'
-  }
-])
+const departmentList = ref<IDepartmentResp[]>([])
 
 // 分页
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(100)
+const total = ref(0)
 
 // 对话框
 const dialogVisible = ref(false)
 const dialogType = ref<'add' | 'edit'>('add')
 const formRef = ref()
+const currentDepartmentId = ref<number | null>(null)
 
 // 表单数据
-const form = reactive({
+const form = reactive<{
+  name: string
+  leaderId?: number
+  leaderName: string
+  description: string
+}>({
   name: '',
-  manager: '',
+  leaderId: undefined,
+  leaderName: '',
   description: ''
 })
 
@@ -147,75 +152,167 @@ const rules = {
     { required: true, message: '请输入部门名称', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
-  manager: [
+  leaderName: [
     { required: true, message: '请输入部门主管', trigger: 'blur' }
   ]
 }
 
+// 加载部门列表
+const loadDepartmentList = async () => {
+  try {
+    loading.value = true
+
+    const params: IDepartmentListReq = {
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    }
+
+    if (searchKeyword.value) {
+      params.name = searchKeyword.value
+    }
+
+    const res = await getDepartmentListSvc(params)
+
+    if (res.code === 200) {
+      departmentList.value = res.data || []
+      total.value = res.total || 0
+    } else {
+      ElMessage.error(res.message || '获取部门列表失败')
+    }
+  } catch (error) {
+    ElMessage.error('请求部门列表出错')
+  } finally {
+    loading.value = false
+  }
+}
+
 // 搜索
 const handleSearch = () => {
-  // TODO: 调用搜索接口
-  console.log('搜索关键词：', searchKeyword.value)
+  currentPage.value = 1
+  loadDepartmentList()
 }
 
 // 新增部门
 const handleAdd = () => {
   dialogType.value = 'add'
   dialogVisible.value = true
+  currentDepartmentId.value = null
   form.name = ''
-  form.manager = ''
+  form.leaderId = undefined
+  form.leaderName = ''
   form.description = ''
 }
 
 // 编辑部门
-const handleEdit = (row: any) => {
-  dialogType.value = 'edit'
-  dialogVisible.value = true
-  form.name = row.name
-  form.manager = row.manager
-  form.description = row.description || ''
+const handleEdit = async (row: IDepartmentResp) => {
+  try {
+    loading.value = true
+    dialogType.value = 'edit'
+    currentDepartmentId.value = row.id
+
+    // 获取部门详情
+    const res = await getDepartmentDetailSvc(row.id)
+
+    if (res.code === 200) {
+      const department = res.data
+      form.name = department.name
+      form.leaderId = department.leaderId
+      form.leaderName = department.leaderName || ''
+      form.description = '' // 根据实际接口调整
+      dialogVisible.value = true
+    } else {
+      ElMessage.error(res.message || '获取部门详情失败')
+    }
+  } catch (error) {
+    ElMessage.error('请求部门详情出错')
+  } finally {
+    loading.value = false
+  }
 }
 
 // 删除部门
-const handleDelete = (row: any) => {
-  ElMessageBox.confirm(
-    `确定要删除部门"${row.name}"吗？`,
-    '警告',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
+const handleDelete = async (row: IDepartmentResp) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除部门"${row.name}"吗？`,
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    const res = await deleteDepartmentSvc(row.id)
+
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadDepartmentList()
+    } else {
+      ElMessage.error(res.message || '删除部门失败')
     }
-  ).then(() => {
-    // TODO: 调用删除接口
-    ElMessage.success('删除成功')
-  }).catch(() => {})
+  } catch (error) {
+    // 用户取消删除不做任何操作
+  }
 }
 
 // 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid: boolean) => {
-    if (valid) {
-      // TODO: 调用新增/编辑接口
-      ElMessage.success(dialogType.value === 'add' ? '新增成功' : '编辑成功')
-      dialogVisible.value = false
+  try {
+    await formRef.value.validate()
+
+    const departmentData: IDepartmentReq = {
+      name: form.name,
+      leaderId: form.leaderId
+      // 根据实际接口可能需要添加其他字段
     }
-  })
+
+    if (dialogType.value === 'add') {
+      // 新增部门
+      const res = await addDepartmentSvc(departmentData)
+
+      if (res.code === 200) {
+        ElMessage.success('新增成功')
+        dialogVisible.value = false
+        loadDepartmentList()
+      } else {
+        ElMessage.error(res.message || '新增部门失败')
+      }
+    } else if (currentDepartmentId.value) {
+      // 编辑部门
+      const res = await updateDepartmentSvc(currentDepartmentId.value, departmentData)
+
+      if (res.code === 200) {
+        ElMessage.success('编辑成功')
+        dialogVisible.value = false
+        loadDepartmentList()
+      } else {
+        ElMessage.error(res.message || '编辑部门失败')
+      }
+    }
+  } catch (error) {
+    // 验证失败不做任何操作
+  }
 }
 
 // 分页大小改变
 const handleSizeChange = (val: number) => {
   pageSize.value = val
-  // TODO: 重新加载数据
+  loadDepartmentList()
 }
 
 // 当前页改变
 const handleCurrentChange = (val: number) => {
   currentPage.value = val
-  // TODO: 重新加载数据
+  loadDepartmentList()
 }
+
+// 初始化加载数据
+onMounted(() => {
+  loadDepartmentList()
+})
 </script>
 
 <style scoped>

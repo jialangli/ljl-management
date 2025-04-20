@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '../store/main/user'
+// import { useUserStore } from '../store/main/user'
 
 // 基础路由（静态路由）
 const constantRoutes = [
@@ -31,49 +31,56 @@ const constantRoutes = [
 const adminRoutes = [
   {
     path: '/admin',
+    name: 'AdminLayout',
     component: () => import('../../src/views/admin/Layout.vue'),
     children: [
       {
-        path: '',
+        path: 'dashboard',
         name: 'AdminDashboard',
         component: () => import('../../src/views/admin/Dashboard.vue'),
         meta: { title: '首页', roles: ['admin'] }
       },
       {
-        path: '',
+        path: 'EmployeeManagement',
         name: 'EmployeeManagement',
         component: () => import('../../src/views/admin/EmployeeManagement.vue'),
-        meta: { title: '用户管理', roles: ['admin'] }
+        meta: { title: '员工管理', roles: ['admin'] }
       },
       {
-        path: 'department',
-        name: 'Department',
+        path: 'DepartmentList',
+        name: 'DepartmentList',
         component: () => import('../../src/views/admin/DepartmentList.vue'),
         meta: { title: '部门管理', roles: ['admin'] }
       },
       {
-        path: 'training',
-        name: 'Training',
+        path: 'TrainingList',
+        name: 'TrainingList',
         component: () => import('../../src/views/admin/TrainingList.vue'),
         meta: { title: '培训管理', roles: ['admin'] }
       },
       {
-        path: 'attendance',
-        name: 'Attendance',
+        path: 'AttendanceManagement',
+        name: 'AttendanceManagement',
         component: () => import('../../src/views/admin/AttendanceManagement.vue'),
         meta: { title: '考勤管理', roles: ['admin'] }
       },
       {
-        path: 'salary',
-        name: 'Salary',
+        path: 'SalaryList',
+        name: 'SalaryList',
         component: () => import('../../src/views/admin/SalaryList.vue'),
         meta: { title: '薪资管理', roles: ['admin'] }
       },
       {
-        path: 'leave',
-        name: 'Leave',
+        path: 'LeaveManagement',
+        name: 'LeaveManagement',
         component: () => import('../../src/views/admin/LeaveManagement.vue'),
         meta: { title: '请假管理', roles: ['admin'] }
+      },
+      {
+        path: 'SystemSettings',
+        name: 'SystemSettings',
+        component: () => import('../../src/views/admin/SystemSettings.vue'),
+        meta: { title: '系统设置', roles: ['admin'] }
       },
     ],
   },
@@ -83,10 +90,11 @@ const adminRoutes = [
 const employeeRoutes = [
   {
     path: '/employee',
+    name: 'EmployeeLayout',
     component: () => import('../../src/views/employee/Layout.vue'),
     children: [
       {
-        path: '',
+        path: 'dashboard',
         name: 'EmployeeDashboard',
         component: () => import('../../src/views/employee/Dashboard.vue'),
         meta: { title: '首页', roles: ['employee'] }
@@ -138,71 +146,25 @@ const router = createRouter({
 
 // 动态添加路由函数
 // 动态添加路由
+// router.js
 export function addRoutes(role) {
-  // 先移除可能存在的动态路由
-  const currentRoutes = router.getRoutes()
+  // 先移除旧动态路由
+  const currentRoutes = router.getRoutes();
   currentRoutes.forEach(route => {
-    if (route.name && !constantRoutes.some(r => r.name === route.name)) {
-      router.removeRoute(route.name)
+    if (route.path.startsWith('/admin') || route.path.startsWith('/employee')) {
+      router.removeRoute(route.name); // 按 name 移除
     }
-  })
+  });
 
-  const routesToAdd = role === 'admin' ? adminRoutes : employeeRoutes
+  // 添加新路由
+  const routesToAdd = role === 'admin' ? adminRoutes : employeeRoutes;
   routesToAdd.forEach(route => {
-    if (!router.hasRoute(route.name)) {
-      router.addRoute(route)
-    }
-  })
+    router.addRoute(route); // 添加一级路由
+  });
 }
-
-router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore()
-
-  // 白名单路径
-  if (to.path === '/login') {
-    if (userStore.isLoggedIn) {
-      // 已登录重定向到首页
-      const redirectPath = userStore.getUserRole === 'admin' ? '/admin' : '/employee'
-      return next(redirectPath)
-    }
-    return next()
-  }
-
-  // 检查登录状态
-  if (!userStore.isLoggedIn) {
-    return next('/login')
-  }
-
-  // 确保用户信息已加载
-  if (!userStore.userInfo) {
-    try {
-      // 使用已有的fetchUserInfo方法获取用户信息
-      await userStore.fetchUserInfo()
-
-      // 动态添加路由
-      addRoutes(userStore.getUserRole)
-
-      // 重定向到请求的路径
-      return next(to.fullPath)
-    } catch (error) {
-      userStore.logout()
-      return next('/login')
-    }
-  }
-
-  // 检查权限
-  if (to.meta.roles && !to.meta.roles.includes(userStore.getUserRole)) {
-    return next('/404')
-  }
-
-  // 确保路由已加载
-  if (!router.hasRoute(to.name)) {
-    addRoutes(userStore.getUserRole)
-    return next(to.fullPath)
-  }
-
-  next()
-})
-
+router.beforeEach((to, from, next) => {
+  console.log(`尝试跳转到: ${to.path}`, to);
+  next(); // 确保调用 next()，否则会卡住
+});
 
 export default router

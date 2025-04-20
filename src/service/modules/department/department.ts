@@ -1,6 +1,7 @@
 import { departmentPath } from '@/service/config/types'
 import createSvcRequest from '@/service/request'
 import type NetResponse from '@/service/request/response'
+import _ from "@/"
 
 import type {
   IDepartmentListReq,
@@ -15,7 +16,7 @@ const departmentSvc = createSvcRequest(departmentPath)
  * 获取部门列表
  * @param params 查询参数
  */
-export function getDepartmentListSvc(params: IDepartmentListReq) {
+export function getDepartmentListSvc(params?: IDepartmentListReq) {
   return departmentSvc.POST<NetResponse<IDepartmentResp[]>>({
     url: '/list',
     data: params,
