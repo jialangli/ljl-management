@@ -28,9 +28,13 @@
     >
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="部门名称" />
-      <el-table-column prop="manager" label="部门主管" />
-      <el-table-column prop="employeeCount" label="员工人数" width="100" />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
+      <el-table-column prop="leaderName" label="部门主管" />
+      <el-table-column
+        prop="createTime"
+        label="创建时间"
+        width="180"
+        :formatter="formatDateColumn"
+      />
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button-group>
@@ -77,7 +81,15 @@
         <el-form-item label="部门主管" prop="leaderName">
           <el-input v-model="form.leaderName" />
         </el-form-item>
-
+        <el-form-item label="创建时间" prop="createTime" v-if="dialogType === 'edit'">
+          <el-date-picker
+            v-model="form.createTime"
+            type="datetime"
+            placeholder="选择日期时间"
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss"
+          />
+        </el-form-item>
         <el-form-item label="部门描述" prop="description">
           <el-input
             v-model="form.description"
@@ -156,7 +168,19 @@ const rules = {
     { required: true, message: '请输入部门主管', trigger: 'blur' }
   ]
 }
+// Element Plus 表格列日期格式化
+const formatDateColumn = (row: IDepartmentResp, column: any, cellValue: string) => {
+  if (!cellValue) return ''
 
+  // 使用 Element Plus 的内置日期格式化
+  const date = new Date(cellValue)
+  return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())} ${padZero(date.getHours())}:${padZero(date.getMinutes())}:${padZero(date.getSeconds())}`
+}
+
+// 补零函数
+const padZero = (num: number) => {
+  return num < 10 ? `0${num}` : num
+}
 // 加载部门列表
 const loadDepartmentList = async () => {
   try {

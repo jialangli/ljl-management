@@ -15,17 +15,13 @@
             <el-icon><Search /></el-icon>
           </template>
         </el-input>
-        <el-select v-model="searchForm.department" placeholder="选择部门" clearable @change="handleSearch">
+        <el-select v-model="searchForm.deptId" placeholder="选择部门" clearable @change="handleSearch">
           <el-option
             v-for="dept in departments"
             :key="dept.id"
             :label="dept.name"
             :value="dept.id"
           />
-        </el-select>
-        <el-select v-model="searchForm.status" placeholder="在职状态" clearable @change="handleSearch">
-          <el-option label="在职" value="active" />
-          <el-option label="离职" value="inactive" />
         </el-select>
       </div>
       <el-button type="primary" @click="handleAdd">
@@ -40,20 +36,15 @@
       border
       style="width: 100%"
     >
-      <el-table-column prop="id" label="工号" width="100" />
-      <el-table-column prop="name" label="姓名" width="120" />
-      <el-table-column prop="department" label="所属部门" width="120" />
-      <el-table-column prop="position" label="职位" width="120" />
+      <el-table-column prop="id" label="ID" width="80" />
+      <el-table-column prop="username" label="用户名" width="120" />
+      <el-table-column prop="realName" label="姓名" width="120" />
+      <el-table-column prop="deptName" label="所属部门" width="120" />
+      <el-table-column prop="role" label="角色" width="120" />
       <el-table-column prop="phone" label="联系电话" width="120" />
       <el-table-column prop="email" label="邮箱" width="180" />
-      <el-table-column prop="entryDate" label="入职日期" width="120" />
-      <el-table-column prop="status" label="状态" width="80">
-        <template #default="{ row }">
-          <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
-            {{ row.status === 'active' ? '在职' : '离职' }}
-          </el-tag>
-        </template>
-      </el-table-column>
+      <el-table-column prop="createTime" label="创建时间" width="180" />
+
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">
           <el-button-group>
@@ -67,9 +58,9 @@
               type="danger"
               size="small"
               @click="handleDelete(row)"
-              :disabled="row.status === 'inactive'"
+
             >
-              离职
+              删除
             </el-button>
           </el-button-group>
         </template>
@@ -103,20 +94,25 @@
       >
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="姓名" prop="name">
-              <el-input v-model="form.name" placeholder="请输入姓名" />
+            <el-form-item label="姓名" prop="realName">
+              <el-input v-model="form.realName" placeholder="请输入姓名" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="工号" prop="id">
-              <el-input v-model="form.id" placeholder="请输入工号" :disabled="dialogType === 'edit'" />
+            <el-form-item label="用户名" prop="username">
+              <el-input v-model="form.username" placeholder="请输入用户名" :disabled="dialogType === 'edit'" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
+          <el-col :span="12" v-if="dialogType === 'add'">
+            <el-form-item label="密码" prop="password">
+              <el-input v-model="form.password" type="password" placeholder="请输入密码" />
+            </el-form-item>
+          </el-col>
           <el-col :span="12">
-            <el-form-item label="所属部门" prop="department">
-              <el-select v-model="form.department" placeholder="请选择部门">
+            <el-form-item label="所属部门" prop="deptId">
+              <el-select v-model="form.deptId" placeholder="请选择部门">
                 <el-option
                   v-for="dept in departments"
                   :key="dept.id"
@@ -127,8 +123,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="职位" prop="position">
-              <el-input v-model="form.position" placeholder="请输入职位" />
+            <el-form-item label="角色" prop="role">
+              <el-input v-model="form.role" placeholder="请输入角色" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -144,34 +140,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="入职日期" prop="entryDate">
-              <el-date-picker
-                v-model="form.entryDate"
-                type="date"
-                placeholder="选择入职日期"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态" prop="status">
-              <el-select v-model="form.status" placeholder="请选择状态">
-                <el-option label="在职" value="active" />
-                <el-option label="离职" value="inactive" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="备注" prop="remark">
-          <el-input
-            v-model="form.remark"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入备注信息"
-          />
-        </el-form-item>
+
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -191,17 +160,13 @@
     >
       <el-descriptions :column="2" border>
         <el-descriptions-item label="工号">{{ currentEmployee.id }}</el-descriptions-item>
-        <el-descriptions-item label="姓名">{{ currentEmployee.name }}</el-descriptions-item>
-        <el-descriptions-item label="所属部门">{{ currentEmployee.department }}</el-descriptions-item>
-        <el-descriptions-item label="职位">{{ currentEmployee.position }}</el-descriptions-item>
+        <el-descriptions-item label="用户名">{{ currentEmployee.username }}</el-descriptions-item>
+        <el-descriptions-item label="姓名">{{ currentEmployee.realName }}</el-descriptions-item>
+        <el-descriptions-item label="所属部门">{{ currentEmployee.deptName }}</el-descriptions-item>
+        <el-descriptions-item label="角色">{{ currentEmployee.role }}</el-descriptions-item>
         <el-descriptions-item label="联系电话">{{ currentEmployee.phone }}</el-descriptions-item>
         <el-descriptions-item label="邮箱">{{ currentEmployee.email }}</el-descriptions-item>
-        <el-descriptions-item label="入职日期">{{ currentEmployee.entryDate }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="currentEmployee.status === 'active' ? 'success' : 'danger'">
-            {{ currentEmployee.status === 'active' ? '在职' : '离职' }}
-          </el-tag>
-        </el-descriptions-item>
+
         <el-descriptions-item label="备注" :span="2">{{ currentEmployee.remark }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -209,56 +174,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
+
+import {
+  getUserListSvc,
+  getUserDetailSvc,
+  deleteUserSvc,
+  addUserSvc,
+  updateUserSvc,
+  type IUserListReq,
+  type IUserListResp,
+  type IAddUserReq,
+  type IUpdateUserReq
+} from '@/service/modules/user/user'
+
+import { getDepartmentListSvc } from '@/service/modules/department/department' // 假设department模块有getList接口
+import type { IDepartmentResp } from '@/service/modules/department/department'
+
 
 // 搜索表单
 const searchForm = reactive({
   keyword: '',
-  department: '',
-  status: ''
+  deptId: undefined,
 })
 
 // 部门列表
-const departments = ref([
-  { id: 1, name: '技术部' },
-  { id: 2, name: '人事部' },
-  { id: 3, name: '财务部' },
-  { id: 4, name: '市场部' }
-])
+const departments = ref<IDepartmentResp[]>([])
 
 // 表格数据
 const loading = ref(false)
-const employeeList = ref([
-  {
-    id: 'EMP001',
-    name: '张三',
-    department: '技术部',
-    position: '前端开发',
-    phone: '13800138000',
-    email: 'zhangsan@example.com',
-    entryDate: '2024-01-01',
-    status: 'active',
-    remark: '优秀员工'
-  },
-  {
-    id: 'EMP002',
-    name: '李四',
-    department: '人事部',
-    position: 'HR专员',
-    phone: '13800138001',
-    email: 'lisi@example.com',
-    entryDate: '2024-02-01',
-    status: 'active',
-    remark: ''
-  }
-])
+const employeeList = ref<IUserListResp[]>([])
 
 // 分页
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(100)
+const total = ref(0)
 
 // 对话框
 const dialogVisible = ref(false)
@@ -267,107 +219,176 @@ const formRef = ref()
 
 // 详情对话框
 const detailVisible = ref(false)
-const currentEmployee = ref({})
+const currentEmployee = ref<Partial<IUserListResp>>({}) // 使用Partial使其属性可选
 
 // 表单数据
-const form = reactive({
-  id: '',
-  name: '',
-  department: '',
-  position: '',
+const form = reactive<IAddUserReq>({ // 或者 IUpdateUserReq，根据实际情况
+  username: '',
+  password: '',
+  realName: '',
+  deptId: undefined,
+  role: 0,
   phone: '',
-  email: '',
-  entryDate: '',
-  status: 'active',
-  remark: ''
+  avatar: '',
+  email: ''
 })
 
 // 表单验证规则
 const rules = {
-  name: [
+  realName: [
     { required: true, message: '请输入姓名', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
-  id: [
-    { required: true, message: '请输入工号', trigger: 'blur' }
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
   ],
-  department: [
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' }
+  ],
+  deptId: [
     { required: true, message: '请选择部门', trigger: 'change' }
   ],
-  position: [
-    { required: true, message: '请输入职位', trigger: 'blur' }
+  role: [
+    { required: true, message: '请输入角色', trigger: 'blur' }
   ],
   phone: [
-    { required: true, message: '请输入联系电话', trigger: 'blur' },
+    { required: true, message: '请输入电话', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
   ],
   email: [
     { required: true, message: '请输入邮箱', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
   ],
-  entryDate: [
-    { required: true, message: '请选择入职日期', trigger: 'change' }
-  ],
-  status: [
-    { required: true, message: '请选择状态', trigger: 'change' }
-  ]
+
+}
+
+// 加载员工列表
+const loadEmployeeList = async () => {
+  loading.value = true
+  try {
+    const params: IUserListReq = {
+      pageNum: currentPage.value,
+      pageSize: pageSize.value,
+      username: searchForm.keyword,
+      realName: searchForm.keyword,
+      deptId: searchForm.deptId,
+    }
+
+    const res = await getUserListSvc(params)
+
+    if (res.code === 200) {
+      employeeList.value = res.data || []
+      total.value = res.total || 0 //后端返回total
+    } else {
+      ElMessage.error('加载员工列表失败')
+    }
+  } catch (error) {
+    ElMessage.error('加载员工列表出错，请检查网络')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载部门列表
+const loadDepartmentList = async () => {
+  try {
+    const res = await getDepartmentListSvc({pageNum:1 ,pageSize:1000 }) // 获取所有部门，或者按需分页
+    if (res.code === 200) {
+      departments.value = res.data || []
+    } else {
+      ElMessage.error('加载部门列表失败')
+    }
+  } catch (error) {
+    ElMessage.error('加载部门列表出错，请检查网络')
+  }
 }
 
 // 搜索
 const handleSearch = () => {
-  // TODO: 调用搜索接口
-  console.log('搜索条件：', searchForm)
+  currentPage.value = 1 // 搜索后回到第一页
+  loadEmployeeList()
 }
 
 // 新增员工
 const handleAdd = () => {
   dialogType.value = 'add'
   dialogVisible.value = true
-  Object.keys(form).forEach(key => {
-    form[key] = key === 'status' ? 'active' : ''
-  })
+  resetForm() // 重置表单
 }
 
 // 编辑员工
-const handleEdit = (row: any) => {
+const handleEdit = async (row: IUserListResp) => {
+
   dialogType.value = 'edit'
   dialogVisible.value = true
-  Object.keys(form).forEach(key => {
-    form[key] = row[key]
-  })
+  try {
+    const res = await getUserDetailSvc(row.id);
+
+  if(res.code === 200){
+    Object.assign(form, res.data);
+
+    }else{
+      ElMessage.error('获取用户详情失败')
+    }
+  }catch(error){
+      ElMessage.error('获取用户详情失败，请检查网络')
+  }
+
 }
 
 // 查看详情
-const handleView = (row: any) => {
+const handleView = (row: IUserListResp) => {
   currentEmployee.value = { ...row }
   detailVisible.value = true
 }
 
-// 删除/离职
-const handleDelete = (row: any) => {
-  ElMessageBox.confirm(
-    `确定要将员工"${row.name}"设置为离职状态吗？`,
-    '警告',
-    {
+// 删除员工
+const handleDelete = async (row: IUserListResp) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除用户 "${row.username}" 吗?`, '确认', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
+    })
+
+    const res = await deleteUserSvc(row.id)
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadEmployeeList() // 重新加载数据
+    } else {
+      ElMessage.error('删除失败')
     }
-  ).then(() => {
-    // TODO: 调用离职接口
-    ElMessage.success('操作成功')
-  }).catch(() => {})
+  } catch (error) {
+    // 取消删除
+  }
 }
 
 // 提交表单
 const handleSubmit = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid: boolean) => {
+  formRef.value.validate(async (valid: boolean) => {
     if (valid) {
-      // TODO: 调用新增/编辑接口
-      ElMessage.success(dialogType.value === 'add' ? '新增成功' : '编辑成功')
-      dialogVisible.value = false
+      try {
+        let res
+        if (dialogType.value === 'add') {
+          res = await addUserSvc(form)
+        } else {
+          res = await updateUserSvc(form.id, form) //id必须传递
+        }
+
+        if (res.code === 200) {
+          ElMessage.success(dialogType.value === 'add' ? '新增成功' : '编辑成功')
+          dialogVisible.value = false
+          loadEmployeeList() // 重新加载数据
+        } else {
+          ElMessage.error(res.message || (dialogType.value === 'add' ? '新增失败' : '编辑失败'))
+        }
+      } catch (error) {
+        ElMessage.error('操作失败，请检查网络')
+      }
+    } else{
+       ElMessage.error('请检查表单')
     }
   })
 }
@@ -375,14 +396,34 @@ const handleSubmit = async () => {
 // 分页大小改变
 const handleSizeChange = (val: number) => {
   pageSize.value = val
-  // TODO: 重新加载数据
+  loadEmployeeList()
 }
 
 // 当前页改变
 const handleCurrentChange = (val: number) => {
   currentPage.value = val
-  // TODO: 重新加载数据
+  loadEmployeeList()
 }
+
+// 重置表单
+const resetForm = () => {
+  Object.assign(form, {
+    username: '',
+    password: '',
+    realName: '',
+    deptId: undefined,
+    role: 0,
+    phone: '',
+    avatar: '',
+    email: ''
+  })
+  formRef.value?.clearValidate() // 清除表单验证
+}
+
+onMounted(() => {
+  loadEmployeeList()
+  loadDepartmentList()
+})
 </script>
 
 <style scoped>
@@ -422,3 +463,4 @@ const handleCurrentChange = (val: number) => {
   margin: 20px 0;
 }
 </style>
+

@@ -15,26 +15,29 @@
             <el-icon><Search /></el-icon>
           </template>
         </el-input>
-        <el-select v-model="searchForm.department" placeholder="选择部门" clearable @change="handleSearch">
-          <el-option
-            v-for="dept in departments"
-            :key="dept.id"
-            :label="dept.name"
-            :value="dept.id"
-          />
-        </el-select>
+
         <el-select v-model="searchForm.type" placeholder="请假类型" clearable @change="handleSearch">
-          <el-option label="事假" value="personal" />
-          <el-option label="病假" value="sick" />
-          <el-option label="年假" value="annual" />
-          <el-option label="调休" value="compensatory" />
+          <el-option label="病假" :value="0" />
+          <el-option label="事假" :value="1" />
+          <el-option label="年假" :value="2" />
         </el-select>
+
         <el-select v-model="searchForm.status" placeholder="审批状态" clearable @change="handleSearch">
-          <el-option label="待审批" value="pending" />
-          <el-option label="已通过" value="approved" />
-          <el-option label="已拒绝" value="rejected" />
+          <el-option label="待审批" :value="0" />
+          <el-option label="已通过" :value="1" />
+          <el-option label="已拒绝" :value="2" />
         </el-select>
+
+        <el-date-picker
+          v-model="searchForm.dateRange"
+          type="daterange"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+          @change="handleSearch"
+        />
       </div>
+
       <el-button type="primary" @click="handleExport">
         <el-icon><Download /></el-icon>导出记录
       </el-button>
@@ -108,10 +111,10 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="申请编号" width="100" />
-      <el-table-column prop="employeeId" label="工号" width="100" />
-      <el-table-column prop="name" label="姓名" width="120" />
-      <el-table-column prop="department" label="所属部门" width="120" />
-      <el-table-column prop="type" label="请假类型" width="100">
+      <el-table-column prop="userId" label="用户ID" width="100" />
+      <el-table-column prop="realName" label="姓名" width="120" />
+      <el-table-column prop="username" label="用户名" width="120" />
+      <el-table-column label="请假类型" width="100">
         <template #default="{ row }">
           <el-tag :type="getTypeTag(row.type)">
             {{ getTypeText(row.type) }}
@@ -120,12 +123,7 @@
       </el-table-column>
       <el-table-column prop="startTime" label="开始时间" width="180" />
       <el-table-column prop="endTime" label="结束时间" width="180" />
-      <el-table-column prop="duration" label="时长" width="100">
-        <template #default="{ row }">
-          {{ row.duration }}天
-        </template>
-      </el-table-column>
-      <el-table-column prop="status" label="状态" width="100">
+      <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-tag :type="getStatusType(row.status)">
             {{ getStatusText(row.status) }}
@@ -135,7 +133,7 @@
       <el-table-column prop="reason" label="请假原因" show-overflow-tooltip />
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
-          <el-button-group v-if="row.status === 'pending'">
+          <el-button-group v-if="row.status === 0">
             <el-button type="success" size="small" @click="handleApprove(row)">
               通过
             </el-button>
@@ -179,13 +177,13 @@
           <el-input v-model="form.id" disabled />
         </el-form-item>
         <el-form-item label="申请人">
-          <el-input v-model="form.name" disabled />
+          <el-input v-model="form.realName" disabled />
         </el-form-item>
         <el-form-item label="请假类型">
-          <el-input v-model="form.type" disabled />
+          <el-input :value="getTypeText(form.type)" disabled />
         </el-form-item>
         <el-form-item label="请假时间">
-          <el-input v-model="form.timeRange" disabled />
+          <el-input :value="`${form.startTime} 至 ${form.endTime}`" disabled />
         </el-form-item>
         <el-form-item label="请假原因">
           <el-input v-model="form.reason" type="textarea" :rows="3" disabled />
@@ -217,9 +215,9 @@
     >
       <el-descriptions :column="2" border>
         <el-descriptions-item label="申请编号">{{ currentLeave.id }}</el-descriptions-item>
-        <el-descriptions-item label="申请人">{{ currentLeave.name }}</el-descriptions-item>
-        <el-descriptions-item label="工号">{{ currentLeave.employeeId }}</el-descriptions-item>
-        <el-descriptions-item label="所属部门">{{ currentLeave.department }}</el-descriptions-item>
+        <el-descriptions-item label="申请人">{{ currentLeave.realName }}</el-descriptions-item>
+        <el-descriptions-item label="用户名">{{ currentLeave.username }}</el-descriptions-item>
+        <el-descriptions-item label="用户ID">{{ currentLeave.userId }}</el-descriptions-item>
         <el-descriptions-item label="请假类型">
           <el-tag :type="getTypeTag(currentLeave.type)">
             {{ getTypeText(currentLeave.type) }}
@@ -232,8 +230,7 @@
         </el-descriptions-item>
         <el-descriptions-item label="开始时间">{{ currentLeave.startTime }}</el-descriptions-item>
         <el-descriptions-item label="结束时间">{{ currentLeave.endTime }}</el-descriptions-item>
-        <el-descriptions-item label="请假时长">{{ currentLeave.duration }}天</el-descriptions-item>
-        <el-descriptions-item label="申请时间">{{ currentLeave.applyTime }}</el-descriptions-item>
+        <el-descriptions-item label="申请时间">{{ currentLeave.createTime }}</el-descriptions-item>
         <el-descriptions-item label="请假原因" :span="2">{{ currentLeave.reason }}</el-descriptions-item>
         <el-descriptions-item label="审批意见" :span="2">{{ currentLeave.comment || '无' }}</el-descriptions-item>
       </el-descriptions>
@@ -242,71 +239,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Download, Timer, CircleCheck, CircleClose, Calendar } from '@element-plus/icons-vue'
+import {
+  getLeaveListSvc,
+  updateLeaveStatusSvc,
+  type ILeaveListReq,
+  type ILeaveRequestResp,
+  type ILeaveStatusUpdateReq
+} from '@/service/modules/leave/leave'
 
 // 搜索表单
 const searchForm = reactive({
   keyword: '',
-  department: '',
-  type: '',
-  status: ''
+  type: undefined as number | undefined,
+  status: undefined as number | undefined,
+  dateRange: [] as string[]
 })
 
-// 部门列表
-const departments = ref([
-  { id: 1, name: '技术部' },
-  { id: 2, name: '人事部' },
-  { id: 3, name: '财务部' },
-  { id: 4, name: '市场部' }
-])
-
 // 请假统计
-const statistics = ref({
-  pending: 5,
-  approved: 12,
-  rejected: 3,
-  monthly: 20
+const statistics = reactive({
+  pending: 0,
+  approved: 0,
+  rejected: 0,
+  monthly: 0
 })
 
 // 表格数据
 const loading = ref(false)
-const leaveList = ref([
-  {
-    id: 'LEA001',
-    employeeId: 'EMP001',
-    name: '张三',
-    department: '技术部',
-    type: 'personal',
-    startTime: '2024-03-20 09:00',
-    endTime: '2024-03-21 18:00',
-    duration: 2,
-    status: 'pending',
-    reason: '家中有事需要处理',
-    applyTime: '2024-03-19 14:30',
-    comment: ''
-  },
-  {
-    id: 'LEA002',
-    employeeId: 'EMP002',
-    name: '李四',
-    department: '人事部',
-    type: 'sick',
-    startTime: '2024-03-20 09:00',
-    endTime: '2024-03-20 18:00',
-    duration: 1,
-    status: 'approved',
-    reason: '感冒发烧',
-    applyTime: '2024-03-19 16:20',
-    comment: '同意请假，请好好休息'
-  }
-])
+const leaveList = ref<ILeaveRequestResp[]>([])
 
 // 分页
 const currentPage = ref(1)
 const pageSize = ref(10)
-const total = ref(100)
+const total = ref(0)
 
 // 对话框
 const dialogVisible = ref(false)
@@ -315,14 +282,15 @@ const formRef = ref()
 
 // 详情对话框
 const detailVisible = ref(false)
-const currentLeave = ref({})
+const currentLeave = ref<ILeaveRequestResp>({} as ILeaveRequestResp)
 
 // 表单数据
 const form = reactive({
-  id: '',
-  name: '',
-  type: '',
-  timeRange: '',
+  id: 0,
+  realName: '',
+  type: 0,
+  startTime: '',
+  endTime: '',
   reason: '',
   comment: ''
 })
@@ -335,85 +303,145 @@ const rules = {
 }
 
 // 获取请假类型标签
-const getTypeTag = (type: string) => {
-  const types = {
-    personal: '',
-    sick: 'danger',
-    annual: 'success',
-    compensatory: 'warning'
+const getTypeTag = (type: number) => {
+  const types: Record<number, string> = {
+    0: 'danger', // 病假
+    1: '',       // 事假
+    2: 'success' // 年假
   }
   return types[type] || 'info'
 }
 
 // 获取请假类型文本
-const getTypeText = (type: string) => {
-  const texts = {
-    personal: '事假',
-    sick: '病假',
-    annual: '年假',
-    compensatory: '调休'
+const getTypeText = (type: number) => {
+  const texts: Record<number, string> = {
+    0: '病假',
+    1: '事假',
+    2: '年假'
   }
   return texts[type] || '未知'
 }
 
 // 获取状态类型
-const getStatusType = (status: string) => {
-  const types = {
-    pending: 'warning',
-    approved: 'success',
-    rejected: 'danger'
+const getStatusType = (status: number) => {
+  const types: Record<number, string> = {
+    0: 'warning',  // 待审批
+    1: 'success',  // 已通过
+    2: 'danger'    // 已拒绝
   }
   return types[status] || 'info'
 }
 
 // 获取状态文本
-const getStatusText = (status: string) => {
-  const texts = {
-    pending: '待审批',
-    approved: '已通过',
-    rejected: '已拒绝'
+const getStatusText = (status: number) => {
+  const texts: Record<number, string> = {
+    0: '待审批',
+    1: '已通过',
+    2: '已拒绝'
   }
   return texts[status] || '未知'
 }
 
+// 加载请假数据
+const loadLeaveData = async () => {
+  try {
+    loading.value = true
+
+    const params: ILeaveListReq = {
+      pageNum: currentPage.value,
+      pageSize: pageSize.value
+    }
+
+    // 添加搜索条件
+    if (searchForm.keyword) {
+      params.userId = parseInt(searchForm.keyword) || undefined
+    }
+    if (searchForm.type !== undefined) {
+      params.type = searchForm.type
+    }
+    if (searchForm.status !== undefined) {
+      params.status = searchForm.status
+    }
+    if (searchForm.dateRange && searchForm.dateRange.length === 2) {
+      params.startTime = searchForm.dateRange[0]
+      params.endTime = searchForm.dateRange[1]
+    }
+
+    const res = await getLeaveListSvc(params)
+
+    if (res.code === 200) {
+      leaveList.value = res.data || []
+      total.value = res.total || 0
+
+      // 更新统计信息
+      updateStatistics(res.data || [])
+    } else {
+      ElMessage.error(res.message || '获取请假列表失败')
+    }
+  } catch (error) {
+    ElMessage.error('请求请假列表出错')
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 更新统计信息
+const updateStatistics = (data: ILeaveRequestResp[]) => {
+  const today = new Date()
+  const currentMonth = today.getMonth() + 1
+  const currentYear = today.getFullYear()
+
+  statistics.pending = data.filter(item => item.status === 0).length
+  statistics.approved = data.filter(item => item.status === 1).length
+  statistics.rejected = data.filter(item => item.status === 2).length
+
+  // 计算本月请假数量
+  statistics.monthly = data.filter(item => {
+    const date = new Date(item.createTime)
+    return date.getMonth() + 1 === currentMonth && date.getFullYear() === currentYear
+  }).length
+}
+
 // 搜索
 const handleSearch = () => {
-  // TODO: 调用搜索接口
-  console.log('搜索条件：', searchForm)
+  currentPage.value = 1
+  loadLeaveData()
 }
 
 // 导出记录
 const handleExport = () => {
-  // TODO: 调用导出接口
-  ElMessage.success('导出成功')
+  ElMessage.warning('导出功能需要根据实际API实现')
 }
 
 // 通过申请
-const handleApprove = (row: any) => {
+const handleApprove = (row: ILeaveRequestResp) => {
   dialogType.value = 'approve'
   dialogVisible.value = true
   form.id = row.id
-  form.name = row.name
-  form.type = getTypeText(row.type)
-  form.timeRange = `${row.startTime} 至 ${row.endTime}`
+  form.realName = row.realName
+  form.type = row.type
+  form.startTime = row.startTime
+  form.endTime = row.endTime
   form.reason = row.reason
   form.comment = ''
 }
 
 // 拒绝申请
-const handleReject = (row: any) => {
+const handleReject = (row: ILeaveRequestResp) => {
   dialogType.value = 'reject'
   dialogVisible.value = true
   form.id = row.id
-  form.name = row.name
-  form.type = getTypeText(row.type)
-  form.timeRange = `${row.startTime} 至 ${row.endTime}`
+  form.realName = row.realName
+  form.type = row.type
+  form.startTime = row.startTime
+  form.endTime = row.endTime
   form.reason = row.reason
   form.comment = ''
 }
 
 // 查看详情
-const handleView = (row: any) => {
+const handleView = (row: ILeaveRequestResp) => {
   currentLeave.value = { ...row }
   detailVisible.value = true
 }
@@ -422,26 +450,43 @@ const handleView = (row: any) => {
 const handleSubmit = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid: boolean) => {
-    if (valid) {
-      // TODO: 调用审批接口
+  try {
+    await formRef.value.validate()
+
+    const statusData: ILeaveStatusUpdateReq = {
+      status: dialogType.value === 'approve' ? 1 : 2
+    }
+
+    const res = await updateLeaveStatusSvc(form.id, statusData)
+
+    if (res.code === 200) {
       ElMessage.success(dialogType.value === 'approve' ? '已通过申请' : '已拒绝申请')
       dialogVisible.value = false
+      loadLeaveData()
+    } else {
+      ElMessage.error(res.message || '审批操作失败')
     }
-  })
+  } catch (error) {
+    // 验证失败不做任何操作
+  }
 }
 
 // 分页大小改变
 const handleSizeChange = (val: number) => {
   pageSize.value = val
-  // TODO: 重新加载数据
+  loadLeaveData()
 }
 
 // 当前页改变
 const handleCurrentChange = (val: number) => {
   currentPage.value = val
-  // TODO: 重新加载数据
+  loadLeaveData()
 }
+
+// 初始化加载数据
+onMounted(() => {
+  loadLeaveData()
+})
 </script>
 
 <style scoped>

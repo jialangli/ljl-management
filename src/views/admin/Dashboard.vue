@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard">
+
     <!-- 数据统计卡片 -->
     <el-row :gutter="20">
       <el-col :span="6">
@@ -7,7 +8,9 @@
           <template #header>
             <div class="card-header">
               <span>员工总数</span>
-              <el-icon><User /></el-icon>
+              <el-icon>
+                <User />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -21,7 +24,9 @@
           <template #header>
             <div class="card-header">
               <span>部门总数</span>
-              <el-icon><Office /></el-icon>
+              <el-icon>
+                <Office />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -35,7 +40,9 @@
           <template #header>
             <div class="card-header">
               <span>本月考勤</span>
-              <el-icon><Calendar /></el-icon>
+              <el-icon>
+                <Calendar />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -49,7 +56,9 @@
           <template #header>
             <div class="card-header">
               <span>待审批</span>
-              <el-icon><Bell /></el-icon>
+              <el-icon>
+                <Bell />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -70,8 +79,7 @@
             </div>
           </template>
           <div class="chart-container">
-            <!-- 这里将使用 ECharts 绘制饼图 -->
-            <div ref="departmentChart" style="width: 100%; height: 300px"></div>
+            <div ref="departmentChartRef" class="department-chart" style="width: 100%; height: 300px"></div>
           </div>
         </el-card>
       </el-col>
@@ -83,8 +91,7 @@
             </div>
           </template>
           <div class="chart-container">
-            <!-- 这里将使用 ECharts 绘制柱状图 -->
-            <div ref="attendanceChart" style="width: 100%; height: 300px"></div>
+            <div ref="attendanceChartRef" class="attendance-chart" style="width: 100%; height: 300px"></div>
           </div>
         </el-card>
       </el-col>
@@ -98,23 +105,21 @@
         </div>
       </template>
       <el-timeline>
-        <el-timeline-item
-          v-for="(activity, index) in recentActivities"
-          :key="index"
-          :timestamp="activity.time"
-          :type="activity.type"
-        >
+        <el-timeline-item v-for="(activity, index) in recentActivities" :key="index" :timestamp="activity.time"
+          :type="activity.type">
           {{ activity.content }}
         </el-timeline-item>
       </el-timeline>
     </el-card>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { User, House, Calendar, Bell } from "@element-plus/icons-vue";
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { User, OfficeBuilding as Office, Calendar, Bell } from '@element-plus/icons-vue';
 import * as echarts from 'echarts';
+import type { EChartsOption } from 'echarts'; // 引入 EChartsOption 类型
 
 // 模拟数据
 const statistics = ref({
@@ -122,7 +127,7 @@ const statistics = ref({
   departmentCount: 8,
   attendanceRate: 98.5,
   pendingApprovals: 12
-})
+});
 
 const recentActivities = ref([
   {
@@ -145,18 +150,21 @@ const recentActivities = ref([
     time: '2024-03-19 14:20',
     type: 'warning'
   }
-])
+]);
 
-// 图表实例
-let departmentChart: echarts.ECharts | null = null
-let attendanceChart: echarts.ECharts | null = null
+// 使用正确的类型定义 ref
+const departmentChartRef = ref<HTMLElement | null>(null);
+const attendanceChartRef = ref<HTMLElement | null>(null);
+
+//图表实例
+let departmentChartInstance: echarts.ECharts | null = null
+let attendanceChartInstance: echarts.ECharts | null = null
 
 // 初始化部门分布图表
 const initDepartmentChart = () => {
-  const chartDom = document.querySelector('.department-chart')
-  if (chartDom) {
-    departmentChart = echarts.init(chartDom as HTMLElement)
-    const option = {
+  if (departmentChartRef.value) {
+    departmentChartInstance = echarts.init(departmentChartRef.value)
+    const option: EChartsOption = { //添加类型标注
       tooltip: {
         trigger: 'item',
         formatter: '{a} <br/>{b}: {c} ({d}%)'
@@ -196,16 +204,17 @@ const initDepartmentChart = () => {
         }
       ]
     }
-    departmentChart.setOption(option)
+    departmentChartInstance.setOption(option)
+  } else {
+    console.error("Department chart container not found.") // 加入错误处理
   }
 }
 
 // 初始化考勤统计图表
 const initAttendanceChart = () => {
-  const chartDom = document.querySelector('.attendance-chart')
-  if (chartDom) {
-    attendanceChart = echarts.init(chartDom as HTMLElement)
-    const option = {
+  if (attendanceChartRef.value) {
+    attendanceChartInstance = echarts.init(attendanceChartRef.value)
+    const option: EChartsOption = { //添加类型标注
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -255,25 +264,42 @@ const initAttendanceChart = () => {
         }
       ]
     }
-    attendanceChart.setOption(option)
+    attendanceChartInstance.setOption(option)
+  } else {
+    console.error("Attendance chart container not found.") // 加入错误处理
   }
 }
 
-// 监听窗口大小变化
+// 监听窗口大小变化，注意现在使用的是chart实例来 resize
 const handleResize = () => {
-  if (departmentChart) {
-    departmentChart.resize()
+  if (departmentChartInstance) {
+    departmentChartInstance.resize();
   }
-  if (attendanceChart) {
-    attendanceChart.resize()
+  if (attendanceChartInstance) {
+    attendanceChartInstance.resize();
   }
-}
-
+};
 
 onMounted(() => {
-  initDepartmentChart()
-  initAttendanceChart()
-  window.addEventListener('resize', handleResize)
+  nextTick(() => {
+    initDepartmentChart()
+    initAttendanceChart()
+  })
+  window.addEventListener('resize', handleResize);
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+
+  if (departmentChartInstance) {
+    departmentChartInstance.dispose()
+    departmentChartInstance = null
+  }
+
+  if (attendanceChartInstance) {
+    attendanceChartInstance.dispose()
+    attendanceChartInstance = null
+  }
 })
 </script>
 

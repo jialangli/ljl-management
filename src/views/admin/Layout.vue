@@ -18,11 +18,11 @@
           </el-icon>
           <span>部门管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/EmployeeManagement">
+        <el-menu-item index="/admin/SalaryList">
           <el-icon>
             <User />
           </el-icon>
-          <span>员工管理</span>
+          <span>工资管理</span>
         </el-menu-item>
         <el-menu-item index="/admin/AttendanceManagement">
           <el-icon>
@@ -36,11 +36,11 @@
           </el-icon>
           <span>请假管理</span>
         </el-menu-item>
-        <el-menu-item index="/admin/SystemSettings">
+        <el-menu-item index="/admin/EmployeeManagement">
           <el-icon>
             <Setting />
           </el-icon>
-          <span>系统设置</span>
+          <span>员工管理</span>
         </el-menu-item>
       </el-menu>
     </div>
