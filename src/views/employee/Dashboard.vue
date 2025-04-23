@@ -8,9 +8,6 @@
           <p class="time">{{ currentTime }}</p>
           <p class="department">{{ userInfo.department }} | {{ userInfo.position }}</p>
         </div>
-        <div class="welcome-image">
-          <img src="@/assets/welcome.png" alt="Welcome" />
-        </div>
       </div>
     </el-card>
 

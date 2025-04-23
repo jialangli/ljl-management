@@ -37,21 +37,20 @@
 
 <script setup lang="ts">
 import { addRoutes } from '@/router'; // 确保路径正确
-import { LoginByPwdSvc } from '@/service/modules/auth/auth';
-import { localCache } from '@/utils/cache/cache';
-import { Account_TOKEN, Account_Type } from '@/utils/cache/keys';
-import { ElMessage } from 'element-plus';
+import { LoginByPwdSvc } from '@/service/modules/auth/auth'; // 引入登录服务
+import { localCache } from '@/utils/cache/cache'; // 本地缓存工具
+import { Account_TOKEN, Account_Type } from '@/utils/cache/keys'; // 本地缓存 key
+import { ElMessage } from 'element-plus'; 
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-const router = useRouter()
-const loginFormRef = ref()
-const loading = ref(false)
-const loginType = ref('admin') // 默认管理员登录
-// const apiUrl = 'http://47.115.160.54:28080/auth/login'
+const router = useRouter();
+const loginFormRef = ref();
+const loading = ref(false);
+const loginType = ref('admin'); // 默认管理员登录
 const loginForm = reactive({
   username: '',
   password: ''
-})
+});
 
 const rules = {
   username: [
@@ -60,30 +59,50 @@ const rules = {
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' }
   ]
-}
+};
+
+// 1. 定义写死的员工账号和密码
+const hardcodedEmployeeUsername = 'cjh'; // 替换成你想要的员工账号
+const hardcodedEmployeePassword = 'cjh123456'; // 替换成你想要的员工密码
+
 const handleLogin = async () => {
   try {
     await loginFormRef.value.validate();
     loading.value = true;
 
+    // 2. 判断是否是写死的员工账号密码
+    if (loginType.value === 'employee' &&
+      loginForm.username === hardcodedEmployeeUsername &&
+      loginForm.password === hardcodedEmployeePassword) {
+      console.log('使用写死的员工账号登录成功！');
+      // 3. 存储 Token 和账号类型（这里只是模拟，真实项目中需要从后端获取）
+      localCache.setCache(Account_TOKEN, 'hardcoded-employee-token'); // 模拟 Token
+      localCache.setCache(Account_Type, 'employee');
 
+      // 4. 添加员工路由
+      addRoutes('employee');
+
+      // 5. 跳转到员工 dashboard
+      await router.push('/employee/dashboard');
+      ElMessage.success('登录成功 (使用写死的账号)');
+      loading.value = false;
+      return;
+    }
+
+    // 如果不是写死的账号，则调用后端接口
     const res = await LoginByPwdSvc({
       username: loginForm.username,
       password: loginForm.password,
     });
 
     if (res.code === 200 && res.data?.token) {
-      // 存储 Token
-      localCache.setCache(Account_TOKEN, res.data?.token)
-      localCache.setCache(Account_Type, loginType.value)
+      // 如果登录成功，存储 Token 和账号类型
+      localCache.setCache(Account_TOKEN, res.data?.token);
+      localCache.setCache(Account_Type, loginType.value);
 
-      // ✅ 动态添加路由
+      // 动态添加路由
       addRoutes(loginType.value);
-      // console.log("动态路由是否加载:", router.getRoutes()); // 检查是否有 /admin 或 /employee
-      // ✅ 打印路由确认
-      // console.log("当前路由:", router.getRoutes());
 
-      // ✅ 跳转到具体路径（避免 /admin 无组件）
       const targetPath = loginType.value === 'admin'
         ? '/admin/dashboard'
         : '/employee/dashboard';
@@ -165,3 +184,4 @@ const handleLogin = async () => {
   padding: 8px 20px;
 }
 </style>
+

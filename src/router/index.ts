@@ -100,40 +100,40 @@ const employeeRoutes = [
         meta: { title: '首页', roles: ['employee'] }
       },
       {
-        path: 'profile',
-        name: 'EmployeeProfile',
+        path: 'UserProfile',
+        name: 'UserProfile',
         component: () => import('../../src/views/employee/UserProfile.vue'),
         meta: { title: '个人信息', roles: ['employee'] }
       },
       {
-        path: 'attendance',
-        name: 'EmployeeAttendance',
+        path: 'AttendanceList',
+        name: 'AttendanceList',
         component: () => import('../../src/views/employee/AttendanceList.vue'),
         meta: { title: '考勤管理', roles: ['employee'] }
       },
       {
-        path: 'leave',
-        name: 'EmployeeLeave',
+        path: 'LeaveList',
+        name: 'LeaveList',
         component: () => import('../../src/views/employee/LeaveList.vue'),
         meta: { title: '请假申请', roles: ['employee'] }
       },
       {
-        path: 'salary',
-        name: 'EmployeeSalary',
+        path: 'SalaryList',
+        name: 'SalaryList',
         component: () => import('../../src/views/employee/SalaryList.vue'),
         meta: { title: '工资管理', roles: ['employee'] }
       },
       {
-        path: 'training',
-        name: 'EmployeeTraining',
+        path: 'TrainingList',
+        name: 'TrainingList',
         component: () => import('../../src/views/employee/TrainingList.vue'),
         meta: { title: '培训管理', roles: ['employee'] }
       },
       {
-        path: 'department-training',
-        name: 'DepartmentTraining',
-        component: () => import('../../src//views/employee/TrainingList.vue'),
-        meta: { title: '部门培训', roles: ['employee'] }
+        path: 'OvertimeList',
+        name: 'OvertimeList',
+        component: () => import('../../src/views/employee/OvertimeList.vue'),
+        meta: { title: '加班申请', roles: ['employee'] }
       },
     ],
   },

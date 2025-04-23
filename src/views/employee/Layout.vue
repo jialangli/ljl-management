@@ -3,7 +3,7 @@
     <!-- 侧边栏 -->
     <div class="sidebar" :class="{ collapsed: isCollapsed }">
       <div class="logo">
-        <img src="@/assets/logo.png" alt="Logo" />
+        <!-- <img src="@/assets/logo.png" alt="Logo" /> -->
         <span v-show="!isCollapsed">SSM人事管理系统</span>
       </div>
       <el-menu
@@ -14,29 +14,29 @@
       >
         <el-menu-item index="/employee/dashboard">
           <el-icon><DataLine /></el-icon>
-          <template #title>工作台</template>
+          <template #title>首页</template>
         </el-menu-item>
-        <el-menu-item index="/employee/profile">
+        <el-menu-item index="/employee/UserProfile">
           <el-icon><User /></el-icon>
           <template #title>个人信息</template>
         </el-menu-item>
-        <el-menu-item index="/employee/attendance">
+        <el-menu-item index="/employee/AttendanceList">
           <el-icon><Calendar /></el-icon>
           <template #title>考勤打卡</template>
         </el-menu-item>
-        <el-menu-item index="/employee/leave">
+        <el-menu-item index="/employee/LeaveList">
           <el-icon><Timer /></el-icon>
           <template #title>请假申请</template>
         </el-menu-item>
-        <el-menu-item index="/employee/overtime">
+        <el-menu-item index="/employee/OvertimeList">
           <el-icon><Clock /></el-icon>
           <template #title>加班申请</template>
         </el-menu-item>
-        <el-menu-item index="/employee/salary">
+        <el-menu-item index="/employee/SalaryList">
           <el-icon><Money /></el-icon>
           <template #title>薪资查询</template>
         </el-menu-item>
-        <el-menu-item index="/employee/training">
+        <el-menu-item index="/employee/TrainingList">
           <el-icon><Reading /></el-icon>
           <template #title>培训记录</template>
         </el-menu-item>
@@ -168,13 +168,13 @@ const activeMenu = computed(() => route.path)
 // 当前路由名称
 const currentRoute = computed(() => {
   const routeMap: Record<string, string> = {
-    '/employee/dashboard': '工作台',
-    '/employee/profile': '个人信息',
-    '/employee/attendance': '考勤打卡',
-    '/employee/leave': '请假申请',
-    '/employee/overtime': '加班申请',
-    '/employee/salary': '薪资查询',
-    '/employee/training': '培训记录'
+    '/employee/dashboard': '首页',
+    '/employee/UserProfile': '个人信息',
+    '/employee/AttendanceList': '考勤打卡',
+    '/employee/LeaveList': '请假申请',
+    '/employee/OvertimeList': '加班申请',
+    '/employee/SalaryList': '薪资查询',
+    '/employee/TrainingList': '培训记录'
   }
   return routeMap[route.path] || '首页'
 })
@@ -218,7 +218,7 @@ const passwordRules = {
 
 // 处理个人信息
 const handleProfile = () => {
-  router.push('/employee/profile')
+  router.push('/employee/UserProfile')
 }
 
 // 处理修改密码

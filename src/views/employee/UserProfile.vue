@@ -139,7 +139,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Plus } from '@element-plus/icons-vue'
-import defaultAvatar from '@/assets/default-avatar.png'
+
 
 // 员工信息
 const employeeInfo = reactive({
