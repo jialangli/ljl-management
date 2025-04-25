@@ -2,12 +2,12 @@ import { localCache } from '@/utils/cache/cache'
 import { Account_TOKEN, Account_USER } from '@/utils/cache/keys'
 import { defineStore } from 'pinia'
 import { LoginByPwdSvc } from '../../service/modules/auth/auth'
-import type { IUserListResp } from '../../service/modules/user/types'
+import type { IUserInfoResp } from '../../service/modules/user/types'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     token: '',
-    userInfo: null as IUserListResp | null
+    userInfo: null as IUserInfoResp | null
   }),
 
   getters: {
@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', {
       localCache.setCache(Account_TOKEN, token)
     },
 
-    setUserInfo(userInfo: IUserListResp) {
+    setUserInfo(userInfo: IUserInfoResp) {
       this.userInfo = userInfo
       localCache.setCache(Account_USER, JSON.stringify(userInfo))
     },

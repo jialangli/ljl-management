@@ -6,14 +6,16 @@
         <div class="card-header">
           <span>个人信息</span>
           <el-button type="primary" @click="handleEdit">
-            <el-icon><Edit /></el-icon>编辑信息
+            <el-icon>
+              <Edit />
+            </el-icon>编辑信息
           </el-button>
         </div>
       </template>
 
       <div class="profile-content">
         <div class="avatar-section">
-          <el-avatar :size="120" :src="avatarUrl || defaultAvatar" />
+          <el-avatar :size="120" :src="avatarVar" />
           <div class="basic-info">
             <h3>{{ employeeInfo.realName }}</h3>
             <p>{{ employeeInfo.deptName }}</p>
@@ -35,17 +37,8 @@
     </el-card>
 
     <!-- 编辑信息对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="'编辑个人信息'"
-      width="600px"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
+    <el-dialog v-model="dialogVisible" :title="'编辑个人信息'" width="600px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="用户ID" prop="id">
@@ -68,12 +61,8 @@
           <el-col :span="12">
             <el-form-item label="部门" prop="deptId">
               <el-select v-model="form.deptId" placeholder="请选择部门">
-                <el-option
-                  v-for="dept in departmentOptions"
-                  :key="dept.value"
-                  :label="dept.label"
-                  :value="dept.value"
-                />
+                <el-option v-for="dept in departmentOptions" :key="dept.value" :label="dept.label"
+                  :value="dept.value" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -83,12 +72,7 @@
           <el-col :span="12">
             <el-form-item label="角色" prop="role">
               <el-select v-model="form.role" placeholder="请选择角色">
-                <el-option
-                  v-for="role in roleOptions"
-                  :key="role.value"
-                  :label="role.label"
-                  :value="role.value"
-                />
+                <el-option v-for="role in roleOptions" :key="role.value" :label="role.label" :value="role.value" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -104,16 +88,12 @@
         </el-form-item>
 
         <el-form-item label="头像" prop="avatar">
-          <el-upload
-            class="avatar-uploader"
-            :action="uploadAvatarUrl"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :before-upload="beforeAvatarUpload"
-            :headers="uploadHeaders"
-          >
+          <el-upload class="avatar-uploader" :action="uploadAvatarUrl" :show-file-list="false"
+            :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :headers="uploadHeaders">
             <img v-if="form.avatar" :src="form.avatar" class="avatar" />
-            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+            <el-icon v-else class="avatar-uploader-icon">
+              <Plus />
+            </el-icon>
           </el-upload>
         </el-form-item>
       </el-form>
@@ -130,29 +110,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { ElMessage } from 'element-plus'
+import { getUserAvatarSvc, getUserDetailSvc, updateUserSvc } from '@/service/modules/user/user'
+import { localCache } from '@/utils/cache/cache'
+import { Account_USER } from '@/utils/cache/keys'
 import { Edit, Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
 import { useUserStore } from '../../store/main/user'
-import { getUserDetailSvc, updateUserSvc, uploadAvatarSvc } from '@/service/modules/user/user'
-import type { IEmployeeInfo, IUpdateEmployeeReq } from './types'
+
 
 const userStore = useUserStore()
-const defaultAvatar = new URL('@/assets/images/default-avatar.png', import.meta.url).href
 
-// 员工信息
-const employeeInfo = reactive<IEmployeeInfo>({
-  id: 0,
-  username: '',
-  realName: '',
-  deptId: 0,
-  deptName: '',
-  role: 0,
-  phone: '',
-  email: '',
-  avatar: '',
-  createTime: ''
-})
+
+
 
 // 部门选项
 const departmentOptions = [
@@ -170,17 +140,26 @@ const roleOptions = [
   { value: 3, label: '普通员工' }
 ]
 
-// 头像URL计算属性
-const avatarUrl = computed(() => {
-  return employeeInfo.avatar
-    ? `/api/uploads/avatar/${employeeInfo.avatar}`
-    : defaultAvatar
-})
+// 获取用户信息
+let employeeInfo = ref()
+employeeInfo.value = localCache.getCache(Account_USER);
 
-// 上传头像URL
-const uploadAvatarUrl = '/api/user/avatar'
-const uploadHeaders = {
-  Authorization: `Bearer ${userStore.token}`
+// 获取用户头像
+const avatarVar = ref()
+if (employeeInfo.value?.avatar) {
+  getUserAvatarSvc(employeeInfo.value?.avatar)
+    .then(blob => {
+      if (!(blob instanceof Blob) || !blob.type.startsWith('image/')) {
+        throw new Error('无效的图片格式')
+      }
+
+      URL.revokeObjectURL(avatarVar.value)
+      avatarVar.value = URL.createObjectURL(blob)
+    })
+    .catch(error => {
+      console.log(error)
+      ElMessage.warning('头像加载失败')
+    })
 }
 
 // 对话框
@@ -225,8 +204,8 @@ const rules = {
 const getRoleName = (role: number) => {
   const roleMap: Record<number, string> = {
     1: '管理员',
-    2: '部门经理',
-    3: '普通员工'
+    0: '员工',
+
   }
   return roleMap[role] || '未知角色'
 }
@@ -242,7 +221,7 @@ const formatDate = (dateString: string) => {
 const loadEmployeeInfo = async () => {
   try {
     // 获取当前用户ID，这里假设编辑的是当前用户
-    const userId = userStore.userInfo.id
+    const userId = employeeInfo.value.id
 
     const res = await getUserDetailSvc(userId)
 

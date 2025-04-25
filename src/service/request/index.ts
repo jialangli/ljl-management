@@ -19,7 +19,6 @@ function createSvcRequest(prefix = '') {
           config.headers.Authorization = 'Bearer ' + token
         }
 
-        console.log('config', config.url);
         return config
       },
 
@@ -31,7 +30,7 @@ function createSvcRequest(prefix = '') {
           localCache.removeCache(Account_USER)
           localCache.removeCache(Account_TOKEN)
           router.push('/login')
-        } else if (res.data?.code !== 200) {
+        } else if (res.data?.code && res.data?.code !== 200) {
           const message = res.data?.message || '服务器请求错误!!!'
           ElMessage({ type: 'error', message: message })
           console.error(`Error: ${message}`)

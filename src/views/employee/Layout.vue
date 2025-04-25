@@ -6,38 +6,47 @@
         <!-- <img src="@/assets/logo.png" alt="Logo" /> -->
         <span v-show="!isCollapsed">SSM人事管理系统</span>
       </div>
-      <el-menu
-        :default-active="activeMenu"
-        class="menu"
-        :collapse="isCollapsed"
-        router
-      >
+      <el-menu :default-active="activeMenu" class="menu" :collapse="isCollapsed" router>
         <el-menu-item index="/employee/dashboard">
-          <el-icon><DataLine /></el-icon>
+          <el-icon>
+            <DataLine />
+          </el-icon>
           <template #title>首页</template>
         </el-menu-item>
         <el-menu-item index="/employee/UserProfile">
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
           <template #title>个人信息</template>
         </el-menu-item>
         <el-menu-item index="/employee/AttendanceList">
-          <el-icon><Calendar /></el-icon>
+          <el-icon>
+            <Calendar />
+          </el-icon>
           <template #title>考勤打卡</template>
         </el-menu-item>
         <el-menu-item index="/employee/LeaveList">
-          <el-icon><Timer /></el-icon>
+          <el-icon>
+            <Timer />
+          </el-icon>
           <template #title>请假申请</template>
         </el-menu-item>
         <el-menu-item index="/employee/OvertimeList">
-          <el-icon><Clock /></el-icon>
+          <el-icon>
+            <Clock />
+          </el-icon>
           <template #title>加班申请</template>
         </el-menu-item>
         <el-menu-item index="/employee/SalaryList">
-          <el-icon><Money /></el-icon>
+          <el-icon>
+            <Money />
+          </el-icon>
           <template #title>薪资查询</template>
         </el-menu-item>
         <el-menu-item index="/employee/TrainingList">
-          <el-icon><Reading /></el-icon>
+          <el-icon>
+            <Reading />
+          </el-icon>
           <template #title>培训记录</template>
         </el-menu-item>
       </el-menu>
@@ -48,11 +57,7 @@
       <!-- 顶部导航栏 -->
       <div class="navbar">
         <div class="left">
-          <el-button
-            type="text"
-            :icon="isCollapsed ? 'Expand' : 'Fold'"
-            @click="toggleSidebar"
-          />
+          <el-button type="text" :icon="isCollapsed ? 'Expand' : 'Fold'" @click="toggleSidebar" />
           <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/employee/dashboard' }">首页</el-breadcrumb-item>
             <el-breadcrumb-item>{{ currentRoute }}</el-breadcrumb-item>
@@ -66,20 +71,28 @@
               <el-icon><CaretBottom /></el-icon>
             </div> -->
             <div class="user-info">
-        <el-avatar :size="32" :src="userInfo.avatar" />
-        <span class="username">{{ userInfo.realName }}</span>
-        <el-icon><CaretBottom /></el-icon>
-      </div>
+              <el-avatar :size="32" :src="userInfo.avatar" />
+              <span class="username">{{ userInfo.realName }}</span>
+              <el-icon>
+                <CaretBottom />
+              </el-icon>
+            </div>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="handleProfile">
-                  <el-icon><User /></el-icon>个人信息
+                  <el-icon>
+                    <User />
+                  </el-icon>个人信息
                 </el-dropdown-item>
                 <el-dropdown-item @click="handlePassword">
-                  <el-icon><Lock /></el-icon>修改密码
+                  <el-icon>
+                    <Lock />
+                  </el-icon>修改密码
                 </el-dropdown-item>
                 <el-dropdown-item divided @click="handleLogout">
-                  <el-icon><SwitchButton /></el-icon>退出登录
+                  <el-icon>
+                    <SwitchButton />
+                  </el-icon>退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -94,37 +107,16 @@
     </div>
 
     <!-- 修改密码对话框 -->
-    <el-dialog
-      v-model="passwordDialogVisible"
-      title="修改密码"
-      width="400px"
-    >
-      <el-form
-        ref="passwordFormRef"
-        :model="passwordForm"
-        :rules="passwordRules"
-        label-width="100px"
-      >
+    <el-dialog v-model="passwordDialogVisible" title="修改密码" width="400px">
+      <el-form ref="passwordFormRef" :model="passwordForm" :rules="passwordRules" label-width="100px">
         <el-form-item label="原密码" prop="oldPassword">
-          <el-input
-            v-model="passwordForm.oldPassword"
-            type="password"
-            show-password
-          />
+          <el-input v-model="passwordForm.oldPassword" type="password" show-password />
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
-          <el-input
-            v-model="passwordForm.newPassword"
-            type="password"
-            show-password
-          />
+          <el-input v-model="passwordForm.newPassword" type="password" show-password />
         </el-form-item>
         <el-form-item label="确认密码" prop="confirmPassword">
-          <el-input
-            v-model="passwordForm.confirmPassword"
-            type="password"
-            show-password
-          />
+          <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -140,26 +132,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  DataLine,
-  User,
-  Calendar,
-  Timer,
-  Clock,
-  Money,
-  Reading,
-  Expand,
-  Fold,
-  CaretBottom,
-  Lock,
-  SwitchButton
-} from '@element-plus/icons-vue'
+import { getUserAvatarSvc } from '@/service/modules/user/user';
 import { localCache } from '@/utils/cache/cache';
 import { Account_USER } from '@/utils/cache/keys';
-import { getUserAvatarSvc } from '@/service/modules/user/user';
+import {
+  Calendar,
+  CaretBottom,
+  Clock,
+  DataLine,
+  Lock,
+  Money,
+  Reading,
+  SwitchButton,
+  Timer,
+  User
+} from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { computed, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter()
 const route = useRoute()
@@ -186,23 +176,28 @@ const currentRoute = computed(() => {
   }
   return routeMap[route.path] || '首页'
 })
-
 const userInfo = ref({
   realName: '',
-  avatar: ''
+  avatar: null
 });
 
-// 从本地缓存获取用户信息
+// 获取用户信息
 const user = localCache.getCache(Account_USER);
-  const  avatarVar = await getUserAvatarSvc(user.avatar)
+userInfo.value.realName = user.realName || '暂无名字'
 
-if (user) {
-  userInfo.value.realName =  user.realName;
-  userInfo.value.avatar = user.avatar || ''; // 设置默认头像
+// 获取用户头像
+if (user?.avatar) {
+  getUserAvatarSvc(user.avatar)
+    .then(blob => {
+      // 生成临时 URL 并响应式更新
+      userInfo.value.avatar = URL.createObjectURL(blob)
+    })
+    .catch(error => {
+      console.log(error)
+      ElMessage.warning('头像加载失败')
+    })
 }
 
-
-console.log('userAvatar',avatarVar);
 // 修改密码对话框
 const passwordDialogVisible = ref(false)
 const passwordFormRef = ref()

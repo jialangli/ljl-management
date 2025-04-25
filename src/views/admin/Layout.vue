@@ -82,6 +82,7 @@
 </template>
 
 <script setup lang="ts">
+import { getUserAvatarSvc } from '@/service/modules/user/user'
 import { localCache } from '@/utils/cache/cache'
 import { Account_TOKEN, Account_Type, Account_USER } from '@/utils/cache/keys'
 import {
@@ -100,11 +101,28 @@ const router = useRouter()
 const route = useRoute()
 const isCollapse = ref(false)
 
-// 从本地存储获取用户信息
-const userInfo = computed(() => {
-  const userInfoStr = localStorage.getItem('userInfo')
-  return userInfoStr ? JSON.parse(userInfoStr) : {}
-})
+const userInfo = ref({
+  realName: '',
+  avatar: null
+});
+
+// 获取用户信息
+const user = localCache.getCache(Account_USER);
+userInfo.value.realName = user.realName || '暂无名字'
+
+// 获取用户头像
+if (user?.avatar) {
+  getUserAvatarSvc(user.avatar)
+    .then(blob => {
+      // 生成临时 URL 并响应式更新
+      userInfo.value.avatar = URL.createObjectURL(blob)
+    })
+    .catch(error => {
+      console.log(error)
+      ElMessage.warning('头像加载失败')
+    })
+}
+
 
 // 当前激活的菜单项
 const activeMenu = computed(() => route.path)

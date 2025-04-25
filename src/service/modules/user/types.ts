@@ -7,8 +7,8 @@ export interface IUserListReq {
   pageSize?: number
 }
 
-// 用户列表响应项
-export interface IUserListResp {
+// 用户响应项
+export interface IUserInfoResp {
   id: number
   username: string
   realName: string

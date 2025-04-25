@@ -2,12 +2,7 @@ import { userPath } from '@/service/config/types'
 import createSvcRequest from '@/service/request'
 import type NetResponse from '@/service/request/response'
 
-import type {
-  IAddUserReq,
-  IUpdateUserReq,
-  IUserListReq,
-  IUserListResp,
-} from './types'
+import type { IAddUserReq, IUpdateUserReq, IUserInfoResp, IUserListReq } from './types'
 
 // 创建用户服务实例
 const userSvc = createSvcRequest(userPath)
@@ -17,9 +12,9 @@ const userSvc = createSvcRequest(userPath)
  * @param params 查询参数
  */
 export function getUserListSvc(params: IUserListReq) {
-  return userSvc.POST<NetResponse<IUserListResp[]>>({
+  return userSvc.POST<NetResponse<IUserInfoResp[]>>({
     url: '/list',
-    data: params,
+    data: params
   })
 }
 
@@ -28,8 +23,8 @@ export function getUserListSvc(params: IUserListReq) {
  * @param id 用户ID
  */
 export function getUserDetailSvc(id: number) {
-  return userSvc.GET<NetResponse<IUserListResp>>({
-    url: `/${id}`,
+  return userSvc.GET<NetResponse<IUserInfoResp>>({
+    url: `/${id}`
   })
 }
 
@@ -39,7 +34,7 @@ export function getUserDetailSvc(id: number) {
  */
 export function deleteUserSvc(id: number) {
   return userSvc.DELETE<NetResponse<null>>({
-    url: `/${id}`,
+    url: `/${id}`
   })
 }
 
@@ -50,7 +45,7 @@ export function deleteUserSvc(id: number) {
 export function addUserSvc(data: IAddUserReq) {
   return userSvc.POST<NetResponse<null>>({
     url: '',
-    data,
+    data
   })
 }
 
@@ -62,7 +57,7 @@ export function addUserSvc(data: IAddUserReq) {
 export function updateUserSvc(id: number, data: IUpdateUserReq) {
   return userSvc.PUT<NetResponse<null>>({
     url: `/${id}`,
-    data,
+    data
   })
 }
 
@@ -75,8 +70,8 @@ export function uploadAvatarSvc(formData: FormData) {
     url: '/avatar',
     data: formData,
     headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 
@@ -85,8 +80,8 @@ export function uploadAvatarSvc(formData: FormData) {
  * @param id 用户ID
  */
 export function getUserAvatarSvc(path: string) {
-  return createSvcRequest('').GET<Blob>({
+  return createSvcRequest().GET<Blob>({
     url: path,
-    responseType: 'blob',
+    responseType: 'blob'
   })
 }
