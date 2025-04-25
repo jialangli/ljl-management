@@ -228,8 +228,16 @@
             {{ getStatusText(currentLeave.status) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="开始时间">{{ currentLeave.startTime }}</el-descriptions-item>
-        <el-descriptions-item label="结束时间">{{ currentLeave.endTime }}</el-descriptions-item>
+        <el-table-column label="开始时间" width="180">
+    <template #default="{ row }">
+      {{ formatDateTime(row.startTime) }}
+    </template>
+  </el-table-column>
+  <el-table-column label="结束时间" width="180">
+    <template #default="{ row }">
+      {{ formatDateTime(row.endTime) }}
+    </template>
+  </el-table-column>
         <el-descriptions-item label="申请时间">{{ currentLeave.createTime }}</el-descriptions-item>
         <el-descriptions-item label="请假原因" :span="2">{{ currentLeave.reason }}</el-descriptions-item>
         <el-descriptions-item label="审批意见" :span="2">{{ currentLeave.comment || '无' }}</el-descriptions-item>
@@ -250,6 +258,20 @@ import {
   type ILeaveStatusUpdateReq
 } from '@/service/modules/leave/leave'
 
+// 日期时间格式化函数
+const formatDateTime = (dateString: string) => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // 月份从0开始
+  const day = date.getDate();
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+
+  return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+};
 // 搜索表单
 const searchForm = reactive({
   keyword: '',

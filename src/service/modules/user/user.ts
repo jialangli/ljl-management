@@ -84,9 +84,9 @@ export function uploadAvatarSvc(formData: FormData) {
  * 获取用户头像
  * @param id 用户ID
  */
-export function getUserAvatarSvc(id: number) {
-  return createSvcRequest('/uploads').GET<Blob>({
-    url: `/avatar/${id}`,
+export function getUserAvatarSvc(path: string) {
+  return createSvcRequest('').GET<Blob>({
+    url: path,
     responseType: 'blob',
   })
 }

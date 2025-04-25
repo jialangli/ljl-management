@@ -39,10 +39,11 @@
 import { addRoutes } from '@/router'; // 确保路径正确
 import { LoginByPwdSvc } from '@/service/modules/auth/auth'; // 引入登录服务
 import { localCache } from '@/utils/cache/cache'; // 本地缓存工具
-import { Account_TOKEN, Account_Type } from '@/utils/cache/keys'; // 本地缓存 key
-import { ElMessage } from 'element-plus'; 
+import { Account_TOKEN, Account_Type, Account_USER } from '@/utils/cache/keys'; // 本地缓存 key
+import { ElMessage } from 'element-plus';
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { getUserDetailSvc } from '@/service/modules/user/user';
 const router = useRouter();
 const loginFormRef = ref();
 const loading = ref(false);
@@ -75,15 +76,13 @@ const handleLogin = async () => {
       loginForm.username === hardcodedEmployeeUsername &&
       loginForm.password === hardcodedEmployeePassword) {
       console.log('使用写死的员工账号登录成功！');
-      // 3. 存储 Token 和账号类型（这里只是模拟，真实项目中需要从后端获取）
-      localCache.setCache(Account_TOKEN, 'hardcoded-employee-token'); // 模拟 Token
-      localCache.setCache(Account_Type, 'employee');
 
       // 4. 添加员工路由
       addRoutes('employee');
 
       // 5. 跳转到员工 dashboard
       await router.push('/employee/dashboard');
+
       ElMessage.success('登录成功 (使用写死的账号)');
       loading.value = false;
       return;
@@ -96,9 +95,20 @@ const handleLogin = async () => {
     });
 
     if (res.code === 200 && res.data?.token) {
-      // 如果登录成功，存储 Token 和账号类型
+
+  // 如果登录成功，存储 Token 和账号类型
       localCache.setCache(Account_TOKEN, res.data?.token);
       localCache.setCache(Account_Type, loginType.value);
+
+      const userInfo = await getUserDetailSvc(res.data?.userId);
+      if (userInfo.code !== 200) {
+        ElMessage.error(userInfo.message || '登录失败');
+        return;
+      }
+
+
+      localCache.setCache(Account_USER, userInfo.data);
+      console.log('登录成功！');
 
       // 动态添加路由
       addRoutes(loginType.value);

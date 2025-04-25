@@ -19,6 +19,7 @@ function createSvcRequest(prefix = '') {
           config.headers.Authorization = 'Bearer ' + token
         }
 
+        console.log('config', config.url);
         return config
       },
 

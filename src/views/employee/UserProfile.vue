@@ -13,23 +13,23 @@
 
       <div class="profile-content">
         <div class="avatar-section">
-          <el-avatar :size="120" :src="employeeInfo.photo || defaultAvatar" />
+          <el-avatar :size="120" :src="avatarUrl || defaultAvatar" />
           <div class="basic-info">
-            <h3>{{ employeeInfo.name }}</h3>
-            <p>{{ employeeInfo.position }}</p>
-            <p>{{ employeeInfo.department }}</p>
+            <h3>{{ employeeInfo.realName }}</h3>
+            <p>{{ employeeInfo.deptName }}</p>
+            <p>{{ getRoleName(employeeInfo.role) }}</p>
           </div>
         </div>
 
         <el-descriptions :column="2" border class="info-details">
-          <el-descriptions-item label="工号">{{ employeeInfo.employeeId }}</el-descriptions-item>
-          <el-descriptions-item label="姓名">{{ employeeInfo.name }}</el-descriptions-item>
-          <el-descriptions-item label="部门">{{ employeeInfo.department }}</el-descriptions-item>
-          <el-descriptions-item label="职位">{{ employeeInfo.position }}</el-descriptions-item>
-          <el-descriptions-item label="性别">{{ employeeInfo.gender }}</el-descriptions-item>
-          <el-descriptions-item label="年龄">{{ employeeInfo.age }}</el-descriptions-item>
+          <el-descriptions-item label="用户ID">{{ employeeInfo.id }}</el-descriptions-item>
+          <el-descriptions-item label="用户名">{{ employeeInfo.username }}</el-descriptions-item>
+          <el-descriptions-item label="真实姓名">{{ employeeInfo.realName }}</el-descriptions-item>
+          <el-descriptions-item label="部门">{{ employeeInfo.deptName }}</el-descriptions-item>
+          <el-descriptions-item label="角色">{{ getRoleName(employeeInfo.role) }}</el-descriptions-item>
           <el-descriptions-item label="手机号">{{ employeeInfo.phone }}</el-descriptions-item>
-          <el-descriptions-item label="基本工资">{{ employeeInfo.baseSalary }}</el-descriptions-item>
+          <el-descriptions-item label="邮箱">{{ employeeInfo.email }}</el-descriptions-item>
+          <el-descriptions-item label="注册时间">{{ formatDate(employeeInfo.createTime) }}</el-descriptions-item>
         </el-descriptions>
       </div>
     </el-card>
@@ -48,21 +48,26 @@
       >
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="工号" prop="employeeId">
-              <el-input v-model="form.employeeId" disabled />
+            <el-form-item label="用户ID" prop="id">
+              <el-input v-model="form.id" disabled />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="姓名" prop="name">
-              <el-input v-model="form.name" placeholder="请输入姓名" />
+            <el-form-item label="用户名" prop="username">
+              <el-input v-model="form.username" disabled />
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="部门" prop="department">
-              <el-select v-model="form.department" placeholder="请选择部门">
+            <el-form-item label="真实姓名" prop="realName">
+              <el-input v-model="form.realName" placeholder="请输入真实姓名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="部门" prop="deptId">
+              <el-select v-model="form.deptId" placeholder="请选择部门">
                 <el-option
                   v-for="dept in departmentOptions"
                   :key="dept.value"
@@ -72,53 +77,42 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="职位" prop="position">
-              <el-input v-model="form.position" placeholder="请输入职位" />
-            </el-form-item>
-          </el-col>
         </el-row>
 
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="性别" prop="gender">
-              <el-radio-group v-model="form.gender">
-                <el-radio label="男">男</el-radio>
-                <el-radio label="女">女</el-radio>
-              </el-radio-group>
+            <el-form-item label="角色" prop="role">
+              <el-select v-model="form.role" placeholder="请选择角色">
+                <el-option
+                  v-for="role in roleOptions"
+                  :key="role.value"
+                  :label="role.label"
+                  :value="role.value"
+                />
+              </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="年龄" prop="age">
-              <el-input-number v-model="form.age" :min="18" :max="65" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="手机号" prop="phone">
               <el-input v-model="form.phone" placeholder="请输入手机号" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="基本工资" prop="baseSalary">
-              <el-input v-model="form.baseSalary" placeholder="请输入基本工资">
-                <template #append>元</template>
-              </el-input>
-            </el-form-item>
-          </el-col>
         </el-row>
 
-        <el-form-item label="照片" prop="photo">
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email" placeholder="请输入邮箱" />
+        </el-form-item>
+
+        <el-form-item label="头像" prop="avatar">
           <el-upload
             class="avatar-uploader"
-            action="/api/upload"
+            :action="uploadAvatarUrl"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload"
+            :headers="uploadHeaders"
           >
-            <img v-if="form.photo" :src="form.photo" class="avatar" />
+            <img v-if="form.avatar" :src="form.avatar" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
@@ -136,93 +130,131 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import { Edit, Plus } from '@element-plus/icons-vue'
+import { useUserStore } from '../../store/main/user'
+import { getUserDetailSvc, updateUserSvc, uploadAvatarSvc } from '@/service/modules/user/user'
+import type { IEmployeeInfo, IUpdateEmployeeReq } from './types'
 
+const userStore = useUserStore()
+const defaultAvatar = new URL('@/assets/images/default-avatar.png', import.meta.url).href
 
 // 员工信息
-const employeeInfo = reactive({
-  employeeId: 'EMP10001',
-  name: '张三',
-  department: '技术部',
-  position: '前端开发工程师',
-  gender: '男',
-  age: 28,
-  phone: '13800138000',
-  photo: '',
-  baseSalary: '15000'
+const employeeInfo = reactive<IEmployeeInfo>({
+  id: 0,
+  username: '',
+  realName: '',
+  deptId: 0,
+  deptName: '',
+  role: 0,
+  phone: '',
+  email: '',
+  avatar: '',
+  createTime: ''
 })
 
 // 部门选项
 const departmentOptions = [
-  { value: '技术部', label: '技术部' },
-  { value: '人事部', label: '人事部' },
-  { value: '财务部', label: '财务部' },
-  { value: '市场部', label: '市场部' },
-  { value: '销售部', label: '销售部' }
+  { value: 1, label: '技术部' },
+  { value: 2, label: '人事部' },
+  { value: 3, label: '财务部' },
+  { value: 4, label: '市场部' },
+  { value: 5, label: '销售部' }
 ]
+
+// 角色选项
+const roleOptions = [
+  { value: 1, label: '管理员' },
+  { value: 2, label: '部门经理' },
+  { value: 3, label: '普通员工' }
+]
+
+// 头像URL计算属性
+const avatarUrl = computed(() => {
+  return employeeInfo.avatar
+    ? `/api/uploads/avatar/${employeeInfo.avatar}`
+    : defaultAvatar
+})
+
+// 上传头像URL
+const uploadAvatarUrl = '/api/user/avatar'
+const uploadHeaders = {
+  Authorization: `Bearer ${userStore.token}`
+}
 
 // 对话框
 const dialogVisible = ref(false)
 const formRef = ref()
 
 // 表单数据
-const form = reactive({
-  employeeId: '',
-  name: '',
-  department: '',
-  position: '',
-  gender: '',
-  age: 0,
+const form = reactive<IUpdateEmployeeReq>({
+  id: 0,
+  username: '',
+  realName: '',
+  deptId: 0,
+  role: 0,
   phone: '',
-  photo: '',
-  baseSalary: ''
+  email: '',
+  avatar: ''
 })
 
 // 表单验证规则
 const rules = {
-  name: [
-    { required: true, message: '请输入姓名', trigger: 'blur' },
+  realName: [
+    { required: true, message: '请输入真实姓名', trigger: 'blur' },
     { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
   ],
-  department: [
+  deptId: [
     { required: true, message: '请选择部门', trigger: 'change' }
   ],
-  position: [
-    { required: true, message: '请输入职位', trigger: 'blur' }
-  ],
-  gender: [
-    { required: true, message: '请选择性别', trigger: 'change' }
-  ],
-  age: [
-    { required: true, message: '请输入年龄', trigger: 'blur' }
+  role: [
+    { required: true, message: '请选择角色', trigger: 'change' }
   ],
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
   ],
-  baseSalary: [
-    { required: true, message: '请输入基本工资', trigger: 'blur' },
-    { pattern: /^\d+$/, message: '请输入数字', trigger: 'blur' }
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
   ]
 }
 
+// 获取角色名称
+const getRoleName = (role: number) => {
+  const roleMap: Record<number, string> = {
+    1: '管理员',
+    2: '部门经理',
+    3: '普通员工'
+  }
+  return roleMap[role] || '未知角色'
+}
+
+// 格式化日期
+const formatDate = (dateString: string) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleString()
+}
+
 // 加载员工信息
-const loadEmployeeInfo = () => {
-  // TODO: 调用API获取员工信息
-  // 模拟API返回
-  Object.assign(employeeInfo, {
-    employeeId: 'EMP10001',
-    name: '张三',
-    department: '技术部',
-    position: '前端开发工程师',
-    gender: '男',
-    age: 28,
-    phone: '13800138000',
-    photo: '',
-    baseSalary: '15000'
-  })
+const loadEmployeeInfo = async () => {
+  try {
+    // 获取当前用户ID，这里假设编辑的是当前用户
+    const userId = userStore.userInfo.id
+
+    const res = await getUserDetailSvc(userId)
+
+    if (res.code === 200 && res.data) {
+      Object.assign(employeeInfo, res.data)
+    } else {
+      ElMessage.error(res.message || '获取用户信息失败')
+    }
+  } catch (error) {
+    ElMessage.error('获取用户信息出错')
+    console.error(error)
+  }
 }
 
 // 编辑信息
@@ -235,19 +267,40 @@ const handleEdit = () => {
 const handleSubmit = async () => {
   if (!formRef.value) return
 
-  await formRef.value.validate((valid: boolean) => {
-    if (valid) {
-      // TODO: 调用API保存信息
-      Object.assign(employeeInfo, form)
-      ElMessage.success('保存成功')
-      dialogVisible.value = false
+  try {
+    await formRef.value.validate()
+
+    const params: IUpdateEmployeeReq = {
+      realName: form.realName,
+      deptId: form.deptId,
+      role: form.role,
+      phone: form.phone,
+      email: form.email,
+      avatar: form.avatar
     }
-  })
+
+    const res = await updateUserSvc(form.id!, params)
+
+    if (res.code === 200) {
+      ElMessage.success('更新成功')
+      dialogVisible.value = false
+      loadEmployeeInfo() // 刷新数据
+    } else {
+      ElMessage.error(res.message || '更新失败')
+    }
+  } catch (error) {
+    console.error('表单验证失败:', error)
+  }
 }
 
 // 头像上传成功
-const handleAvatarSuccess = (response: any, file: File) => {
-  form.photo = URL.createObjectURL(file.raw)
+const handleAvatarSuccess = async (response: any) => {
+  if (response.code === 200) {
+    form.avatar = response.data
+    ElMessage.success('头像上传成功')
+  } else {
+    ElMessage.error(response.message || '头像上传失败')
+  }
 }
 
 // 头像上传前校验
@@ -270,6 +323,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 保持原有的样式不变 */
 .employee-profile {
   padding: 20px;
 }

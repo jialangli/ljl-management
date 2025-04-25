@@ -60,11 +60,16 @@
         </div>
         <div class="right">
           <el-dropdown trigger="click">
-            <div class="user-info">
+            <!-- <div class="user-info">
               <el-avatar :size="32" :src="userInfo.avatar" />
               <span class="username">{{ userInfo.realName }}</span>
               <el-icon><CaretBottom /></el-icon>
-            </div>
+            </div> -->
+            <div class="user-info">
+        <el-avatar :size="32" :src="userInfo.avatar" />
+        <span class="username">{{ userInfo.realName }}</span>
+        <el-icon><CaretBottom /></el-icon>
+      </div>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item @click="handleProfile">
@@ -152,6 +157,9 @@ import {
   Lock,
   SwitchButton
 } from '@element-plus/icons-vue'
+import { localCache } from '@/utils/cache/cache';
+import { Account_USER } from '@/utils/cache/keys';
+import { getUserAvatarSvc } from '@/service/modules/user/user';
 
 const router = useRouter()
 const route = useRoute()
@@ -179,12 +187,22 @@ const currentRoute = computed(() => {
   return routeMap[route.path] || '首页'
 })
 
-// 用户信息
 const userInfo = ref({
-  realName: '张三',
+  realName: '',
   avatar: ''
-})
+});
 
+// 从本地缓存获取用户信息
+const user = localCache.getCache(Account_USER);
+  const  avatarVar = await getUserAvatarSvc(user.avatar)
+
+if (user) {
+  userInfo.value.realName =  user.realName;
+  userInfo.value.avatar = user.avatar || ''; // 设置默认头像
+}
+
+
+console.log('userAvatar',avatarVar);
 // 修改密码对话框
 const passwordDialogVisible = ref(false)
 const passwordFormRef = ref()
