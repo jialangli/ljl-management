@@ -146,7 +146,7 @@
         <el-descriptions-item label="结束时间">{{ formatDateTime(currentDetail?.endTime) }}</el-descriptions-item>
         <el-descriptions-item label="参与人员" :span="2">
           <el-tag 
-            v-for="(participant, index) in currentDetail?.participants?.split(',')" 
+            v-for="(participant, index) in currentDetail?.participants" 
             :key="index"
             style="margin-right: 5px; margin-bottom: 5px;"
           >

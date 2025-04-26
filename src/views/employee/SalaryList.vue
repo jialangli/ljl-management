@@ -36,12 +36,12 @@
       >
         <el-table-column prop="month" label="月份" width="120" />
         <el-table-column prop="realName" label="员工" width="150" />
-        <el-table-column prop="baseSalary" label="基本工资" width="120">
+        <el-table-column prop="baseSalary" label="基本工资" width="150">
           <template #default="{ row }">
             {{ row.baseSalary }} 元
           </template>
         </el-table-column>
-        <el-table-column prop="bonus" label="奖金" width="120">
+        <el-table-column prop="bonus" label="奖金" width="150">
           <template #default="{ row }">
             {{ row.bonus || 0 }} 元
           </template>
@@ -51,7 +51,7 @@
             {{ row.deduction || 0 }} 元
           </template>
         </el-table-column>
-        <el-table-column prop="totalSalary" label="应发工资" width="120">
+        <el-table-column prop="totalSalary" label="应发工资" width="180">
           <template #default="{ row }">
             {{ row.totalSalary }} 元
           </template>

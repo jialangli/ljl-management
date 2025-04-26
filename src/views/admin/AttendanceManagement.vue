@@ -108,14 +108,14 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="realName" label="姓名" width="120" />
-      <el-table-column prop="username" label="用户名" width="120" />
-      <el-table-column label="打卡时间" width="180">
+      <el-table-column prop="realName" label="姓名" width="200" />
+      <el-table-column prop="username" label="用户名" width="200" />
+      <el-table-column label="打卡时间" width="200">
         <template #default="{ row }">
           {{ formatDateTime(row.clockIn) }}
         </template>
       </el-table-column>
-      <el-table-column prop="type" label="类型" width="100">
+      <el-table-column prop="type" label="类型" width="200">
         <template #default="{ row }">
           <el-tag :type="row.type === '上班' ? 'primary' : 'success'">
             {{ row.type }}

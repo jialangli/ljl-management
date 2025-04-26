@@ -44,6 +44,33 @@
       </el-table-column>
     </el-table>
 
+    <!-- 详情对话框 -->
+    <el-dialog
+      v-model="detailVisible"
+      title="培训详情"
+      width="600px"
+    >
+      <el-descriptions :column="1" border v-loading="detailLoading">
+        <el-descriptions-item label="培训标题">{{ detailData.title }}</el-descriptions-item>
+        <el-descriptions-item label="培训内容">
+          <pre style="margin: 0; white-space: pre-wrap">{{ detailData.content }}</pre>
+        </el-descriptions-item>
+        <el-descriptions-item label="开始时间">{{ formatTime(detailData.startTime) }}</el-descriptions-item>
+        <el-descriptions-item label="结束时间">{{ formatTime(detailData.endTime) }}</el-descriptions-item>
+        <el-descriptions-item label="参与人员">
+          <el-tag
+            v-for="id in detailData.participants"
+            :key="id"
+            type="info"
+            style="margin-right: 5px; margin-bottom: 5px"
+          >
+            {{ getUserName(id) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ formatTime(detailData.createTime) }}</el-descriptions-item>
+      </el-descriptions>
+    </el-dialog>
+
     <!-- 分页 -->
     <div class="pagination">
       <el-pagination
@@ -98,7 +125,7 @@
               v-for="user in userList"
               :key="user.id"
               :label="user.realName"
-              :value="user.id"
+              :value="user.id.toString()"
             />
           </el-select>
         </el-form-item>
@@ -118,6 +145,7 @@ import { Search } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import {
   getTrainingListSvc,
+  getTrainingDetailSvc,
   addTrainingSvc,
   updateTrainingSvc,
   deleteTrainingSvc,
@@ -160,6 +188,20 @@ const form = reactive<ITrainingReq & { id?: number }>({
 })
 const selectedParticipants = ref<string[]>([])
 
+// 详情相关
+const detailVisible = ref(false)
+const detailLoading = ref(false)
+const detailData = ref<ITrainingResp>({
+  id: 0,
+  creator: '',
+  title: '',
+  content: '',
+  startTime: '',
+  endTime: '',
+  participants: [],
+  createTime: ''
+})
+
 // 表单验证规则
 const rules = {
   title: [{ required: true, message: '请输入培训标题', trigger: 'blur' }],
@@ -198,18 +240,54 @@ const loadTrainingData = async () => {
 // 加载用户列表
 const loadUserList = async () => {
   try {
-    const res = await getUserListSvc({ pageSize: 1000 })
+    const res = await getUserListSvc({ 
+      pageNum: 1,
+      pageSize: 1000,
+      status: 1 // 假设1表示有效用户
+    })
     if (res.code === 200) {
-      userList.value = res.data || []
+      userList.value = res.data?.map(user => ({
+        ...user,
+        id: user.id.toString() // 统一转换为字符串格式
+      })) || []
     }
   } catch (error) {
     ElMessage.error('获取用户列表失败')
   }
 }
 
+// 查看详情
+const handleViewDetail = async (row: ITrainingResp) => {
+  try {
+    detailLoading.value = true
+    detailVisible.value = true
+    const res = await getTrainingDetailSvc(row.id)
+    if (res.code === 200) {
+      detailData.value = {
+        ...res.data,
+        participants: res.data.participants || []
+      }
+    } else {
+      ElMessage.error(res.message || '获取详情失败')
+      detailVisible.value = false
+    }
+  } catch (error) {
+    ElMessage.error('获取详情失败')
+    detailVisible.value = false
+  } finally {
+    detailLoading.value = false
+  }
+}
+
+// 用户ID转姓名
+const getUserName = (userId: string) => {
+  const user = userList.value.find(u => u.id === userId)
+  return user?.realName || `未知用户(${userId})`
+}
+
 // 时间格式化
 const formatTime = (time: string) => {
-  return dayjs(time).format('YYYY-MM-DD HH:mm')
+  return time ? dayjs(time).format('YYYY-MM-DD HH:mm') : '-'
 }
 
 // 新增培训
@@ -223,17 +301,19 @@ const handleAdd = () => {
 const handleEdit = async (row: ITrainingResp) => {
   dialogType.value = 'edit'
   try {
-    // 获取详情数据
-    Object.assign(form, {
-      id: row.id,
-      title: row.title,
-      content: row.content,
-      startTime: row.startTime,
-      endTime: row.endTime,
-      participants: row.participants.join(',')
-    })
-    selectedParticipants.value = row.participants
-    dialogVisible.value = true
+    const detailRes = await getTrainingDetailSvc(row.id)
+    if (detailRes.code === 200) {
+      Object.assign(form, {
+        id: row.id,
+        title: detailRes.data.title,
+        content: detailRes.data.content,
+        startTime: detailRes.data.startTime,
+        endTime: detailRes.data.endTime,
+        participants: detailRes.data.participants?.join(',') || ''
+      })
+      selectedParticipants.value = detailRes.data.participants || []
+      dialogVisible.value = true
+    }
   } catch (error) {
     ElMessage.error('获取详情失败')
   }
@@ -290,13 +370,12 @@ const resetForm = () => {
   selectedParticipants.value = []
 }
 
-// 分页大小改变
+// 分页处理
 const handleSizeChange = (size: number) => {
   pagination.pageSize = size
   loadTrainingData()
 }
 
-// 页码改变
 const handlePageChange = (page: number) => {
   pagination.pageNum = page
   loadTrainingData()
@@ -313,8 +392,8 @@ onMounted(() => {
 .training-list {
   padding: 20px;
   height: 100vh;
-
-
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -326,6 +405,8 @@ onMounted(() => {
 
 .search-bar {
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .pagination {
@@ -338,5 +419,11 @@ onMounted(() => {
 :deep(.el-table) {
   flex: 1;
   overflow: auto;
+}
+
+pre {
+  font-family: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 </style>
