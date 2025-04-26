@@ -229,16 +229,21 @@ function statusType(status: string) {
 
 <style scoped>
 .overtime-management {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 20px auto;
+  padding: 0 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.1);
 }
 .card {
-  padding: 20px;
+  padding: 30px;
+  margin-bottom: 20px;
 }
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size:24px;
   font-weight: 600;
   font-size: 18px;
 }

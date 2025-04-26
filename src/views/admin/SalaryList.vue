@@ -37,11 +37,14 @@
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="realName" label="员工姓名" />
       <el-table-column prop="username" label="用户名" />
-      <el-table-column prop="deptName" label="部门" />
       <el-table-column prop="baseSalary" label="基本工资" />
       <el-table-column prop="bonus" label="奖金" />
       <el-table-column prop="deduction" label="扣款" />
-      <el-table-column prop="totalSalary" label="实发工资" />
+      <el-table-column label="实发工资" align="right">
+        <template #default="{ row }">
+          {{ (row.baseSalary + row.bonus - row.deduction).toFixed(2) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="month" label="月份" width="120" />
       <el-table-column
         prop="createTime"
@@ -114,6 +117,13 @@
             type="month"
             placeholder="选择月份"
             value-format="YYYY-MM"
+          />
+        </el-form-item>
+        <!-- 实发工资预览 -->
+        <el-form-item label="实发工资">
+          <el-input 
+            :value="(form.baseSalary + form.bonus - form.deduction).toFixed(2)" 
+            disabled 
           />
         </el-form-item>
       </el-form>
@@ -287,16 +297,6 @@ const handleDelete = async (row: ISalaryResp) => {
         type: 'warning'
       }
     )
-
-    // 注意：根据API文档，您需要实现deleteSalarySvc方法
-    // const res = await deleteSalarySvc(row.id)
-    // if (res.code === 200) {
-    //   ElMessage.success('删除成功')
-    //   loadSalaryList()
-    // } else {
-    //   ElMessage.error(res.message || '删除薪资记录失败')
-    // }
-    ElMessage.warning('删除功能需要根据实际API实现')
   } catch (error) {
     // 用户取消删除不做任何操作
   }

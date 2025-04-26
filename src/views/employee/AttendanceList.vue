@@ -1,119 +1,114 @@
 <template>
   <div class="attendance-management">
     <el-card class="card">
-      <div slot="header" class="card-header">
-        <span>员工考勤管理</span>
+      <div class="card-header">
+        <span class="card-title">员工考勤管理</span>
       </div>
 
       <!-- 打卡区域 -->
       <div class="punch-card">
         <el-button
           type="primary"
+          size="large"
           :disabled="hasClockIn"
           @click="clockIn"
+          class="punch-button"
         >
+          <el-icon class="button-icon"><Clock /></el-icon>
           上班打卡
         </el-button>
         <el-button
           type="success"
+          size="large"
           :disabled="!hasClockIn || hasClockOut"
           @click="clockOut"
+          class="punch-button"
         >
+          <el-icon class="button-icon"><Timer /></el-icon>
           下班打卡
         </el-button>
         <div class="status">
-          <p>今日状态：</p>
-          <p v-if="hasClockIn">已打上班卡：{{ clockInTime }}</p>
-          <p v-if="hasClockOut">已打下班卡：{{ clockOutTime }}</p>
-          <p v-if="!hasClockIn">未打上班卡</p>
+          <p class="status-title">今日状态：</p>
+          <p v-if="hasClockIn" class="status-item">
+            <el-icon class="status-icon"><CircleCheck /></el-icon>
+            已打上班卡：{{ clockInTime }}
+          </p>
+          <p v-if="hasClockOut" class="status-item">
+            <el-icon class="status-icon"><CircleCheck /></el-icon>
+            已打下班卡：{{ clockOutTime }}
+          </p>
+          <p v-if="!hasClockIn" class="status-item">
+            <el-icon class="status-icon"><Warning /></el-icon>
+            未打上班卡
+          </p>
         </div>
       </div>
+            <!-- 历史考勤记录 -->
+            <div class="history-section">
+        <div class="filter-container">
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            @change="handleDateChange"
+          />
+        </div>
+        
+        <el-table
+          :data="attendanceList"
+          v-loading="loading"
+          border
+          stripe
+          style="width: 100%"
+        >
+          <el-table-column prop="createTime" label="打卡时间" width="180">
+            <template #default="{ row }">
+              {{ formatTime(row.createTime) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="type" label="类型" width="120" />
+          <el-table-column prop="status" label="状态" width="120">
+            <template #default="{ row }">
+              <el-tag :type="statusTagType(row.status)">
+                {{ row.status }}
+              </el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
 
-      <!-- 申请区 -->
-      <div class="application-actions">
-        <el-button type="warning" @click="showLeaveDialog = true">请假申请</el-button>
-        <el-button type="warning" @click="showOvertimeDialog = true">加班申请</el-button>
+        <div class="pagination-container">
+          <el-pagination
+            v-model:current-page="pagination.pageNum"
+            v-model:page-size="pagination.pageSize"
+            :total="pagination.total"
+            :page-sizes="[10, 20, 50]"
+            layout="total, sizes, prev, pager, next, jumper"
+            @size-change="loadAttendanceData"
+            @current-change="loadAttendanceData"
+          />
+        </div>
       </div>
-
-      <!-- 请假申请弹窗 -->
-      <el-dialog
-        v-model="showLeaveDialog"
-        title="请假申请"
-        width="500px"
-        :before-close="resetLeaveForm"
-      >
-        <el-form :model="leaveForm" ref="leaveFormRef" label-width="80px">
-          <el-form-item label="类型" prop="type" :rules="[{ required: true, message: '请选择类型', trigger: 'change' }]">
-            <el-select v-model="leaveForm.type" placeholder="请选择">
-              <el-option label="事假" value="personal"></el-option>
-              <el-option label="病假" value="sick"></el-option>
-              <el-option label="年假" value="annual"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="开始时间" prop="startTime" :rules="[{ required: true, message: '请选择开始时间', trigger: 'change' }]">
-            <el-date-picker v-model="leaveForm.startTime" type="datetime" placeholder="选择开始时间" style="width: 100%;"/>
-          </el-form-item>
-          <el-form-item label="结束时间" prop="endTime" :rules="[{ required: true, message: '请选择结束时间', trigger: 'change' }]">
-            <el-date-picker v-model="leaveForm.endTime" type="datetime" placeholder="选择结束时间" style="width: 100%;"/>
-          </el-form-item>
-          <el-form-item label="备注" prop="remark">
-            <el-input v-model="leaveForm.remark" type="textarea" />
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="showLeaveDialog = false">取消</el-button>
-          <el-button type="primary" @click="submitLeave">提交</el-button>
-        </div>
-      </el-dialog>
-
-      <!-- 加班申请弹窗 -->
-      <el-dialog
-        v-model="showOvertimeDialog"
-        title="加班申请"
-        width="500px"
-        :before-close="resetOvertimeForm"
-      >
-        <el-form :model="overtimeForm" ref="overtimeFormRef" label-width="80px">
-          <el-form-item label="日期" prop="date" :rules="[{ required: true, message: '请选择日期', trigger: 'change' }]">
-            <el-date-picker v-model="overtimeForm.date" type="date" placeholder="选择日期" style="width: 100%;"/>
-          </el-form-item>
-          <el-form-item label="加班时间" prop="hours" :rules="[{ required: true, message: '请输入加班小时数', trigger: 'blur' }]">
-            <el-input-number v-model="overtimeForm.hours" :min="1" :max="24" />
-          </el-form-item>
-          <el-form-item label="备注" prop="remark">
-            <el-input v-model="overtimeForm.remark" type="textarea" />
-          </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-          <el-button @click="showOvertimeDialog = false">取消</el-button>
-          <el-button type="primary" @click="submitOvertime">提交</el-button>
-        </div>
-      </el-dialog>
-
-      <!-- 申请记录表 -->
-      <el-table :data="applicationRecords" style="margin-top:20px" stripe>
-        <el-table-column prop="type" label="类型" width="100"/>
-        <el-table-column prop="category" label="类别" width="120"/>
-        <el-table-column prop="startTime" label="开始时间" width="180"/>
-        <el-table-column prop="endTime" label="结束时间" width="180"/>
-        <el-table-column prop="hours" label="小时" width="80"/>
-        <el-table-column prop="status" label="状态" width="100"/>
-        <el-table-column label="操作" width="120" v-slot="scope">
-          <el-button
-            v-if="scope.row.status === '待审核'"
-            size="mini"
-            type="text"
-            @click="handleApprove(scope.row)"
-          >审核</el-button>
-        </el-table-column>
-      </el-table>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref,onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Clock, Timer, CircleCheck, Warning } from '@element-plus/icons-vue'
+import { 
+  getPersonalAttendanceSvc,
+  clockInSvc
+} from '../../service/modules/attendance/attendance'
+import type { IAttendanceResp } from '../../service/modules/attendance/types'
+import { useUserStore } from '../../store/main/user'
+import dayjs from 'dayjs'
+// 打卡状态
+const userStore = useUserStore()
+const userId = userStore.userId
 
 // 打卡状态
 const hasClockIn = ref(false)
@@ -121,128 +116,209 @@ const hasClockOut = ref(false)
 const clockInTime = ref('')
 const clockOutTime = ref('')
 
-// 打卡按钮
-function clockIn() {
-  hasClockIn.value = true
-  clockInTime.value = new Date().toLocaleString()
-  ElMessage.success('上班打卡成功')
-}
-function clockOut() {
-  hasClockOut.value = true
-  clockOutTime.value = new Date().toLocaleString()
-  ElMessage.success('下班打卡成功')
-}
 
-// 请假申请
-const showLeaveDialog = ref(false)
-const leaveFormRef = ref()
-const leaveForm = reactive({
-  type: '',
-  startTime: '',
-  endTime: '',
-  remark: ''
+// 历史记录相关
+const attendanceList = ref<IAttendanceResp[]>([])
+const loading = ref(false)
+const dateRange = ref<string[]>([])
+const pagination = ref({
+  pageNum: 1,
+  pageSize: 10,
+  total: 0
 })
-function resetLeaveForm() {
-  leaveForm.type = ''
-  leaveForm.startTime = ''
-  leaveForm.endTime = ''
-  leaveForm.remark = ''
-}
-function submitLeave() {
-  leaveFormRef.value.validate((valid: boolean) => {
-    if (valid) {
-      // 模拟提交
-      applicationRecords.value.push({
-        type: '请假',
-        category: leaveForm.type,
-        startTime: leaveForm.startTime,
-        endTime: leaveForm.endTime,
-        hours: '',
-        status: '待审核'
-      })
-      ElMessage.success('请假申请已提交')
-      showLeaveDialog.value = false
-      resetLeaveForm()
+
+// 获取当天考勤状态
+async function loadTodayStatus() {
+  try {
+    const today = dayjs().format('YYYY-MM-DD')
+    const res = await getPersonalAttendanceSvc({
+      userId,
+      startDate: today,
+      endDate: today
+    })
+    
+    if (res.code === 200) {
+      const records = res.data || []
+      hasClockIn.value = records.some(r => r.type === '上班')
+      hasClockOut.value = records.some(r => r.type === '下班')
+      
+      const clockInRecord = records.find(r => r.type === '上班')
+      const clockOutRecord = records.find(r => r.type === '下班')
+      clockInTime.value = clockInRecord?.createTime || ''
+      clockOutTime.value = clockOutRecord?.createTime || ''
     }
-  })
+  } catch (error) {
+    ElMessage.error('获取当天状态失败')
+  }
 }
 
-// 加班申请
-const showOvertimeDialog = ref(false)
-const overtimeFormRef = ref()
-const overtimeForm = reactive({
-  date: '',
-  hours: 8,
-  remark: ''
+// 加载历史记录
+async function loadAttendanceData() {
+  loading.value = true
+  try {
+    const params = {
+      userId,
+      pageNum: pagination.value.pageNum,
+      pageSize: pagination.value.pageSize,
+      startDate: dateRange.value?.[0],
+      endDate: dateRange.value?.[1]
+    }
+
+    const res = await getPersonalAttendanceSvc(params)
+    if (res.code === 200) {
+      attendanceList.value = res.data || []
+      pagination.value.total = res.total || 0
+    }
+  } catch (error) {
+    ElMessage.error('加载历史记录失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 打卡操作
+async function clockIn() {
+  try {
+    const res = await clockInSvc({ type: '上班' })
+    if (res.code === 200) {
+      await loadTodayStatus()
+      await loadAttendanceData()
+      ElMessage.success('上班打卡成功')
+    }
+  } catch (error) {
+    ElMessage.error('打卡失败')
+  }
+}
+
+async function clockOut() {
+  try {
+    const res = await clockInSvc({ type: '下班' })
+    if (res.code === 200) {
+      await loadTodayStatus()
+      await loadAttendanceData()
+      ElMessage.success('下班打卡成功')
+    }
+  } catch (error) {
+    ElMessage.error('打卡失败')
+  }
+}
+
+// 辅助方法
+function formatTime(time: string) {
+  return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
+}
+
+function statusTagType(status: string) {
+  return status === '正常' ? 'success' : 'danger'
+}
+
+// 初始化
+onMounted(() => {
+  loadTodayStatus()
+  loadAttendanceData()
 })
-function resetOvertimeForm() {
-  overtimeForm.date = ''
-  overtimeForm.hours = 8
-  overtimeForm.remark = ''
-}
-function submitOvertime() {
-  overtimeFormRef.value.validate((valid: boolean) => {
-    if (valid) {
-      // 模拟提交
-      applicationRecords.value.push({
-        type: '加班',
-        category: '',
-        startTime: '',
-        endTime: '',
-        hours: overtimeForm.hours,
-        status: '待审核'
-      })
-      ElMessage.success('加班申请已提交')
-      showOvertimeDialog.value = false
-      resetOvertimeForm()
-    }
-  })
-}
-
-// 申请记录
-const applicationRecords = ref([
-  // 示例数据
-  { type: '请假', category: '事假', startTime: '2023-10-10 09:00', endTime: '2023-10-10 18:00', hours: '', status: '已通过' },
-  { type: '加班', category: '', startTime: '', endTime: '', hours: 2, status: '待审核' }
-])
-
-// 审核操作
-function handleApprove(record: any) {
-  // 弹出确认框
-  ElMessageBox.confirm('确定审核通过吗？', '审核', {
-    confirmButtonText: '通过',
-    cancelButtonText: '拒绝',
-    type: 'warning'
-  }).then(() => {
-    record.status = '已通过'
-    ElMessage.success('审核已通过')
-  }).catch(() => {
-    record.status = '未通过'
-    ElMessage.info('审核已拒绝')
-  })
-}
 </script>
-
 <style scoped>
+.history-section {
+  margin-top: 30px;
+}
+
+.filter-container {
+  margin-bottom: 20px;
+}
+
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
 .attendance-management {
-  max-width: 900px;
-  margin: 20px auto;
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
 }
+
 .card {
-  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  padding: 30px;
 }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 500;
+  color: #303133;
+}
+
 .punch-card {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 30px;
+  margin-bottom: 30px;
+  padding: 25px;
+  background-color: #f5f7fa;
+  border-radius: 12px;
 }
+
+.punch-button {
+  padding: 15px 30px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.button-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
 .status {
-  margin-left: 20px;
+  margin-left: auto;
+  font-size: 16px;
 }
-.application-actions {
-  margin-top: 20px;
+
+.status-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #606266;
+}
+
+.status-item {
   display: flex;
-  gap: 20px;
+  align-items: center;
+  margin: 8px 0;
+  color: #606266;
+}
+
+.status-icon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .punch-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .status {
+    margin-left: 0;
+    margin-top: 15px;
+  }
+  
+  .punch-button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

@@ -463,6 +463,9 @@ onMounted(() => {
 <style scoped>
 .attendance-management {
   padding: 20px;
+  height:100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .operation-bar {

@@ -4,167 +4,399 @@
 
     <!-- 搜索和过滤 -->
     <div class="search-filter">
-      <el-input v-model="searchKeyword" placeholder="搜索培训名称" clearable />
-      <!-- 其他搜索和过滤选项，例如培训状态、培训日期等 -->
-      <el-button type="primary" @click="searchTraining">搜索</el-button>
+      <el-input 
+        v-model="searchParams.title" 
+        placeholder="搜索培训标题" 
+        clearable 
+        style="width: 200px"
+      />
+      <el-input
+        v-model="searchParams.creator"
+        placeholder="创建人"
+        clearable
+        style="width: 150px"
+      />
+      <el-button type="primary" @click="fetchData">搜索</el-button>
       <el-button @click="resetSearch">重置</el-button>
+      <el-button type="success" @click="openDialog('add')" icon="el-icon-plus">新增培训</el-button>
     </div>
 
     <!-- 培训列表 -->
-    <el-table :data="filteredTrainingList" border style="width: 100%">
-      <el-table-column prop="id" label="ID" width="50" />
-      <el-table-column prop="name" label="培训名称" width="200" />
-      <el-table-column prop="description" label="描述" />
-      <el-table-column prop="startDate" label="开始日期" width="120">
-        <template #default="scope">{{ formatDate(scope.row.startDate) }}</template>
-      </el-table-column>
-      <el-table-column prop="endDate" label="结束日期" width="120">
-        <template #default="scope">{{ formatDate(scope.row.endDate) }}</template>
-      </el-table-column>
-      <el-table-column prop="status" label="状态" width="80">
+    <el-table 
+      :data="trainingList" 
+      border 
+      style="width: 100%"
+      v-loading="loading"
+    >
+      <el-table-column prop="id" label="ID" width="60" align="center" />
+      <el-table-column prop="title" label="培训标题" width="200" />
+      <el-table-column prop="content" label="培训内容" min-width="100" />
+      <el-table-column prop="creator" label="创建人" width="120" />
+      <el-table-column prop="startTime" label="开始时间" width="160">
         <template #default="scope">
-          <el-tag :type="statusType(scope.row.status)">{{ scope.row.status }}</el-tag>
+          {{ formatDateTime(scope.row.startTime) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="150">
+      <el-table-column prop="endTime" label="结束时间" width="160">
+        <template #default="scope">
+          {{ formatDateTime(scope.row.endTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" width="100" align="center">
+        <template #default="scope">
+          <el-tag :type="statusType(scope.row)">
+            {{ calculateStatus(scope.row) }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="380" fixed="right" align="center">
         <template #default="scope">
           <el-button size="small" @click="viewDetails(scope.row)">查看</el-button>
-          <!-- 其他操作按钮，例如报名、取消报名等 -->
+          <el-button 
+            size="small" 
+            type="primary" 
+            @click="openDialog('edit', scope.row)"
+          >编辑</el-button>
+          <el-button 
+            size="small" 
+            type="danger" 
+            @click="deleteTraining(scope.row.id)"
+          >删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 分页 -->
     <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      :page-sizes="[10, 20, 50, 100]"
-      :small="small"
-      :disabled="disabled"
-      :background="background"
+      v-model:current-page="pagination.pageNum"
+      v-model:page-size="pagination.pageSize"
+      :page-sizes="[5, 10, 20, 50]"
+      :background="true"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="trainingList.length"
+      :total="pagination.total"
       @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
+      @current-change="handlePageChange"
+      style="margin-top: 20px;"
     />
 
-    <!-- 培训详情对话框 -->
-    <el-dialog v-model="dialogVisible" title="培训详情" width="60%">
-      <TrainingDetail :training="selectedTraining" />
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog 
+      :title="dialogTitle" 
+      v-model="dialogVisible" 
+      width="600px"
+      @closed="resetForm"
+    >
+      <el-form 
+        :model="currentTraining" 
+        ref="formRef" 
+        label-width="80px"
+        :rules="rules"
+      >
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="currentTraining.title" />
+        </el-form-item>
+        <el-form-item label="内容" prop="content">
+          <el-input 
+            v-model="currentTraining.content" 
+            type="textarea" 
+            :rows="4"
+          />
+        </el-form-item>
+        <el-form-item label="开始时间" prop="startTime">
+          <el-date-picker
+            v-model="currentTraining.startTime"
+            type="datetime"
+            placeholder="选择开始时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="结束时间" prop="endTime">
+          <el-date-picker
+            v-model="currentTraining.endTime"
+            type="datetime"
+            placeholder="选择结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="参与人员" prop="participants">
+          <el-input 
+            v-model="currentTraining.participants"
+            placeholder="请输入参与人员，多个用逗号分隔"
+          />
+        </el-form-item>
+      </el-form>
       <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">关闭</el-button>
-        </span>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm">保存</el-button>
       </template>
+    </el-dialog>
+
+    <!-- 培训详情对话框 -->
+    <el-dialog 
+      v-model="detailVisible" 
+      title="培训详情" 
+      width="60%"
+    >
+      <el-descriptions :column="2" border>
+        <el-descriptions-item label="培训标题">{{ currentDetail?.title }}</el-descriptions-item>
+        <el-descriptions-item label="创建人">{{ currentDetail?.creator }}</el-descriptions-item>
+        <el-descriptions-item label="开始时间">{{ formatDateTime(currentDetail?.startTime) }}</el-descriptions-item>
+        <el-descriptions-item label="结束时间">{{ formatDateTime(currentDetail?.endTime) }}</el-descriptions-item>
+        <el-descriptions-item label="参与人员" :span="2">
+          <el-tag 
+            v-for="(participant, index) in currentDetail?.participants?.split(',')" 
+            :key="index"
+            style="margin-right: 5px; margin-bottom: 5px;"
+          >
+            {{ participant }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="培训内容" :span="2">
+          {{ currentDetail?.content }}
+        </el-descriptions-item>
+      </el-descriptions>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ref, reactive, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import dayjs from 'dayjs'
+import { 
+  getTrainingListSvc,
+  getTrainingDetailSvc,
+  addTrainingSvc,
+  updateTrainingSvc,
+  deleteTrainingSvc
+} from '../../service/modules/training/training'
+import type { 
+  ITrainingListReq,
+  ITrainingReq,
+  ITrainingResp 
+} from '../../service/modules/training/types'
 
-interface Training {
-  id: number;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-  // 其他培训相关属性
+// 表格数据
+const trainingList = ref<ITrainingResp[]>([])
+const loading = ref(false)
+
+// 分页配置
+const pagination = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  total: 0
+})
+
+// 搜索参数
+const searchParams = reactive<ITrainingListReq>({
+  title: '',
+  creator: ''
+})
+
+// 当前操作记录
+const currentTraining = reactive<ITrainingReq>({
+  title: '',
+  content: '',
+  startTime: '',
+  endTime: '',
+  participants: ''
+})
+
+// 当前查看详情
+const currentDetail = ref<ITrainingResp>()
+const dialogVisible = ref(false)
+const detailVisible = ref(false)
+const dialogTitle = ref('新增培训')
+const isEditMode = ref(false)
+const formRef = ref()
+
+// 表单验证规则
+const rules = {
+  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+  content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
+  startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
+  endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
+  participants: [{ required: true, message: '请输入参与人员', trigger: 'blur' }]
 }
 
-//Data:
-const trainingList = ref<Training[]>([]); // 存储培训列表数据
-const searchKeyword = ref('');
-const currentPage = ref(1);
-const pageSize = ref(10);
-const dialogVisible = ref(false);
-const selectedTraining = ref<Training | null>(null);
+// 获取数据
+const fetchData = async () => {
+  try {
+    loading.value = true
+    const params: ITrainingListReq = {
+      ...searchParams,
+      pageNum: pagination.pageNum,
+      pageSize: pagination.pageSize
+    }
 
-//Pagination options
-const small = ref(false)
-const background = ref(true)
-const disabled = ref(false)
-
-//Computed Properties:
-const filteredTrainingList = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return trainingList.value
-    .filter((training) => training.name.toLowerCase().includes(searchKeyword.value.toLowerCase()))
-    .slice(start, end);
-});
-
-//Functions/Methods:
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(); // 你可以自定义日期格式
-};
-
-const statusType = (status: string) => {
-  if (status === '进行中') {
-    return 'success';
-  } else if (status === '已结束') {
-    return 'info';
-  } else {
-    return 'warning';
+    const res = await getTrainingListSvc(params)
+    if (res.code === 200) {
+      trainingList.value = res.data || []
+      pagination.total = res.total || 0
+    }
+  } catch (error) {
+    ElMessage.error('获取数据失败')
+  } finally {
+    loading.value = false
   }
-};
+}
 
-const searchTraining = () => {
-  // 执行搜索操作，可以调用 API 或直接过滤 data
-  console.log('搜索关键词:', searchKeyword.value);
-  currentPage.value = 1; // Reset page to 1
-};
+// 查看详情
+const viewDetails = async (row: ITrainingResp) => {
+  try {
+    const res = await getTrainingDetailSvc(row.id)
+    if (res.code === 200) {
+      currentDetail.value = res.data
+      detailVisible.value = true
+    }
+  } catch (error) {
+    ElMessage.error('获取详情失败')
+  }
+}
 
+// 删除培训
+const deleteTraining = (id: number) => {
+  ElMessageBox.confirm('确认删除该培训记录？', '警告', {
+    confirmButtonText: '确认',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(async () => {
+    const res = await deleteTrainingSvc(id)
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      fetchData()
+    }
+  }).catch(() => {})
+}
+
+// 打开弹窗
+const openDialog = (mode: 'add' | 'edit', row?: ITrainingResp) => {
+  isEditMode.value = mode === 'edit'
+  dialogTitle.value = mode === 'add' ? '新增培训' : '编辑培训'
+  
+  if (mode === 'edit' && row) {
+    Object.assign(currentTraining, {
+      title: row.title,
+      content: row.content,
+      startTime: row.startTime,
+      endTime: row.endTime,
+      participants: row.participants
+    })
+    // 添加编辑时需要传递的ID
+    ;(currentTraining as any).id = row.id
+  }
+  dialogVisible.value = true
+}
+
+// 提交表单
+const submitForm = async () => {
+  try {
+    await formRef.value.validate()
+    
+    if (isEditMode.value) {
+      // 编辑操作
+      const res = await updateTrainingSvc((currentTraining as any).id, currentTraining)
+      if (res.code === 200) {
+        ElMessage.success('更新成功')
+        fetchData()
+      }
+    } else {
+      // 新增操作
+      const res = await addTrainingSvc(currentTraining)
+      if (res.code === 200) {
+        ElMessage.success('添加成功')
+        fetchData()
+      }
+    }
+    dialogVisible.value = false
+  } catch (error) {
+    console.error('提交失败:', error)
+  }
+}
+
+// 重置表单
+const resetForm = () => {
+  formRef.value?.resetFields()
+  Object.assign(currentTraining, {
+    title: '',
+    content: '',
+    startTime: '',
+    endTime: '',
+    participants: ''
+  })
+  delete (currentTraining as any).id
+}
+
+// 分页处理
+const handleSizeChange = (val: number) => {
+  pagination.pageSize = val
+  fetchData()
+}
+
+const handlePageChange = (val: number) => {
+  pagination.pageNum = val
+  fetchData()
+}
+
+// 重置搜索
 const resetSearch = () => {
-  searchKeyword.value = '';
-  currentPage.value = 1;
-  // 重置其他搜索条件
-};
+  searchParams.title = ''
+  searchParams.creator = ''
+  fetchData()
+}
 
-const viewDetails = (training: Training) => {
-  selectedTraining.value = training;
-  dialogVisible.value = true;
-};
+// 状态计算
+const calculateStatus = (row: ITrainingResp) => {
+  const now = dayjs()
+  const start = dayjs(row.startTime)
+  const end = dayjs(row.endTime)
+  
+  if (now.isBefore(start)) return '未开始'
+  if (now.isAfter(end)) return '已结束'
+  return '进行中'
+}
 
-const handleSizeChange = (size: number) => {
-  pageSize.value = size;
-  currentPage.value = 1;
-};
+const statusType = (row: ITrainingResp) => {
+  const status = calculateStatus(row)
+  return {
+    '进行中': 'success',
+    '已结束': 'info',
+    '未开始': 'warning'
+  }[status]
+}
 
-const handleCurrentChange = (page: number) => {
-  currentPage.value = page;
-};
+// 日期格式化
+const formatDateTime = (time?: string) => {
+  return time ? dayjs(time).format('YYYY-MM-DD HH:mm') : ''
+}
 
-
+// 初始化加载
 onMounted(() => {
-
-  setTimeout(() => {
-    trainingList.value = [
-      { id: 1, name: 'Vue.js 3.0 基础入门', description: 'Vue 3.0 基础知识', startDate: '2024-01-15', endDate: '2024-01-20', status: '已结束' },
-      { id: 2, name: 'React Hooks 深入浅出', description: 'React Hooks 使用技巧', startDate: '2024-02-01', endDate: '2024-02-10', status: '进行中' },
-      { id: 3, name: '前端性能优化实战', description: '前端性能优化方法', startDate: '2024-03-01', endDate: '2024-03-05', status: '未开始' },
-      { id: 4, name: 'Webpack5高级教程', description: 'Webpack5配置', startDate: '2024-04-01', endDate: '2024-04-05', status: '已结束' },
-      { id: 5, name: 'Node.js 入门与实践', description: 'Node.js 基础知识', startDate: '2024-05-01', endDate: '2024-05-05', status: '进行中' },
-      { id: 6, name: '前端面试准备', description: '面试常见问题分享', startDate: '2024-05-01', endDate: '2024-05-05', status: '已结束' },
-      { id: 7, name: 'Typescript', description: '强类型语言学习', startDate: '2024-05-01', endDate: '2024-05-05', status: '进行中' },
-      { id: 8, name: '项目管理', description: 'Gantt图表原理', startDate: '2024-05-01', endDate: '2024-05-05', status: '未开始' },
-    ];
-  }, 500);
-});
+  fetchData()
+})
 </script>
 
 <style scoped>
 .training-list-container {
-  padding: 20px;
+  padding: 20px 30px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .search-filter {
-  margin-bottom: 20px;
+  margin: 20px 0;
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.el-descriptions {
+  margin: 20px;
+}
+
+.el-tag + .el-tag {
+  margin-left: 10px;
 }
 </style>

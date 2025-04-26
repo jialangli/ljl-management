@@ -3,7 +3,7 @@
     <!-- 侧边栏 -->
     <div class="sidebar">
       <div class="logo">
-        <h2>SSM人事管理系统</h2>
+        <h2>人事管理系统</h2>
       </div>
       <el-menu :default-active="activeMenu" class="sidebar-menu" :router="true" :collapse="isCollapse">
         <el-menu-item index="/admin/dashboard">
@@ -41,6 +41,12 @@
             <Setting />
           </el-icon>
           <span>员工管理</span>
+        </el-menu-item>
+        <el-menu-item index="/admin/TrainingList">
+          <el-icon>
+            <Setting />
+          </el-icon>
+          <span>培训管理</span>
         </el-menu-item>
       </el-menu>
     </div>

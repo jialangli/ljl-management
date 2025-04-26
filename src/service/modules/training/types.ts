@@ -14,7 +14,7 @@ export interface ITrainingResp {
   content: string
   startTime: string
   endTime: string
-  participants: string
+  participants: string[]
   createTime: string
 }
 
