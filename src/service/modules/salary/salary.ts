@@ -2,12 +2,7 @@ import { salaryPath } from '@/service/config/types'
 import createSvcRequest from '@/service/request'
 import type NetResponse from '@/service/request/response'
 
-import type {
-  ISalaryListReq,
-  ISalaryReq,
-  ISalaryResp,
-  ISalaryUpdateReq,
-} from './types'
+import type { ISalaryListReq, ISalaryReq, ISalaryResp, ISalaryUpdateReq } from './types'
 
 // 创建工资服务实例
 const salarySvc = createSvcRequest(salaryPath)
@@ -19,7 +14,7 @@ const salarySvc = createSvcRequest(salaryPath)
 export function getSalaryListSvc(params: ISalaryListReq) {
   return salarySvc.POST<NetResponse<ISalaryResp[]>>({
     url: '/list',
-    data: params,
+    data: params
   })
 }
 
@@ -30,7 +25,7 @@ export function getSalaryListSvc(params: ISalaryListReq) {
 export function addSalarySvc(data: ISalaryReq) {
   return salarySvc.POST<NetResponse<null>>({
     url: '',
-    data,
+    data
   })
 }
 
@@ -42,7 +37,7 @@ export function addSalarySvc(data: ISalaryReq) {
 export function updateSalarySvc(id: number, data: ISalaryUpdateReq) {
   return salarySvc.PUT<NetResponse<null>>({
     url: `/${id}`,
-    data,
+    data
   })
 }
 
@@ -51,8 +46,8 @@ export function updateSalarySvc(id: number, data: ISalaryUpdateReq) {
  * @param params 查询参数
  */
 export function getPersonalSalaryListSvc(params: ISalaryListReq) {
-  return salarySvc.POST<NetResponse<ISalaryResp>>({
+  return salarySvc.POST<NetResponse<ISalaryResp[]>>({
     url: '/personal',
-    data: params,
+    data: params
   })
 }

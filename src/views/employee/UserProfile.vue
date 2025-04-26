@@ -5,7 +5,9 @@
         <div class="card-header">
           <span>个人信息</span>
           <el-button type="primary" @click="handleEdit">
-            <el-icon><Edit /></el-icon>编辑信息
+            <el-icon>
+              <Edit />
+            </el-icon>编辑信息
           </el-button>
         </div>
       </template>
@@ -24,7 +26,8 @@
           <el-descriptions-item label="用户ID">{{ employeeInfo.id }}</el-descriptions-item>
           <el-descriptions-item label="用户名">{{ employeeInfo.username }}</el-descriptions-item>
           <el-descriptions-item label="真实姓名">{{ employeeInfo.realName }}</el-descriptions-item>
-          <el-descriptions-item label="部门">{{ employeeInfo.deptName }}</el-descriptions-item>
+          <el-descriptions-item label="部门">技术部</el-descriptions-item>
+          <!-- <el-descriptions-item label="部门">{{ employeeInfo.deptName }}</el-descriptions-item> -->
           <el-descriptions-item label="角色">{{ getRoleName(employeeInfo.role) }}</el-descriptions-item>
           <el-descriptions-item label="手机号">{{ employeeInfo.phone }}</el-descriptions-item>
           <el-descriptions-item label="邮箱">{{ employeeInfo.email }}</el-descriptions-item>
@@ -58,30 +61,14 @@
           <el-col :span="12">
             <el-form-item label="部门" prop="deptId">
               <el-select v-model="form.deptId" placeholder="请选择部门">
-                <el-option 
-                  v-for="dept in departmentOptions" 
-                  :key="dept.value" 
-                  :label="dept.label"
-                  :value="dept.value"
-                />
+                <el-option v-for="dept in departmentOptions" :key="dept.value" :label="dept.label"
+                  :value="dept.value" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="角色" prop="role">
-              <el-select v-model="form.role" placeholder="请选择角色">
-                <el-option 
-                  v-for="role in roleOptions" 
-                  :key="role.value" 
-                  :label="role.label" 
-                  :value="role.value"
-                />
-              </el-select>
-            </el-form-item>
-          </el-col>
           <el-col :span="12">
             <el-form-item label="手机号" prop="phone">
               <el-input v-model="form.phone" placeholder="请输入手机号" />
@@ -94,17 +81,12 @@
         </el-form-item>
 
         <el-form-item label="头像" prop="avatar">
-          <el-upload
-            class="avatar-uploader"
-            :action="uploadAvatarUrl"
-            :headers="uploadHeaders"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :before-upload="beforeAvatarUpload"
-            :on-error="handleUploadError"
-          >
+          <el-upload class="avatar-uploader" :action="uploadAvatarUrl" :headers="uploadHeaders" :show-file-list="false"
+            :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :on-error="handleUploadError">
             <img v-if="form.avatar" :src="form.avatar" class="avatar" />
-            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+            <el-icon v-else class="avatar-uploader-icon">
+              <Plus />
+            </el-icon>
           </el-upload>
         </el-form-item>
       </el-form>
@@ -119,18 +101,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Edit, Plus } from '@element-plus/icons-vue'
-import dayjs from 'dayjs'
-import type { UploadProps } from 'element-plus'
-import { 
-  getUserAvatarSvc, 
-  getUserDetailSvc, 
-  updateUserSvc 
+import {
+  getUserAvatarSvc,
+  getUserDetailSvc,
+  updateUserSvc
 } from '@/service/modules/user/user'
 import { localCache } from '@/utils/cache/cache'
 import { Account_USER } from '@/utils/cache/keys'
+import { Edit, Plus } from '@element-plus/icons-vue'
+import dayjs from 'dayjs'
+import type { UploadProps } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 
 interface IUpdateEmployeeReq {
   id?: number
@@ -152,16 +134,15 @@ const departmentOptions = [
   { value: 5, label: '销售部' }
 ]
 
-// 角色选项
-const roleOptions = [
-  { value: 1, label: '管理员' },
-  { value: 2, label: '部门经理' },
-  { value: 3, label: '普通员工' }
-]
 
 // 用户信息
 const employeeInfo = ref(localCache.getCache(Account_USER) || {})
 const avatarUrl = ref('')
+
+// 请求用户部分信息
+if (employeeInfo.value?.deptId) {
+
+}
 
 // 获取头像
 const loadAvatar = async () => {
@@ -216,8 +197,7 @@ const rules = {
 const getRoleName = (role: number) => {
   const roleMap: Record<number, string> = {
     1: '管理员',
-    2: '部门经理',
-    3: '普通员工'
+    0: '普通员工'
   }
   return roleMap[role] || '未知角色'
 }
@@ -250,7 +230,7 @@ const handleEdit = () => {
 const handleSubmit = async () => {
   try {
     await formRef.value.validate()
-    
+
     const params: IUpdateEmployeeReq = {
       realName: form.realName,
       deptId: form.deptId,

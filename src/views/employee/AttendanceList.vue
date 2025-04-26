@@ -1,12 +1,3 @@
-TODO⠀⠀⠰⢷⢿⠄
-⠀⠀⠀⠀⠀⣼⣷⣄
-⠀⠀⣤⣿⣇⣿⣿⣧⣿⡄
-⢴⠾⠋⠀⠀⠻⣿⣷⣿⣿⡀
-🏀⢀⣿⣿⡿⢿⠈⣿
-⠀⠀⠀⢠⣿⡿⠁⠀⡊⠀⠙
-⠀⠀⠀⢿⣿⠀⠀⠹⣿
-⠀⠀⠀⠀⠹⣷⡀⠀⣿⡄
-⠀⠀⠀⠀⣀⣼⣿⠀⢈⣧.
 <template>
   <div class="attendance-management">
     <el-card class="card">
@@ -16,66 +7,52 @@ TODO⠀⠀⠰⢷⢿⠄
 
       <!-- 打卡区域 -->
       <div class="punch-card">
-        <el-button
-          type="primary"
-          size="large"
-          :disabled="hasClockIn"
-          @click="clockIn"
-          class="punch-button"
-        >
-          <el-icon class="button-icon"><Clock /></el-icon>
+        <el-button type="primary" size="large" :disabled="hasClockIn" @click="clockIn" class="punch-button">
+          <el-icon class="button-icon">
+            <Clock />
+          </el-icon>
           上班打卡
         </el-button>
-        <el-button
-          type="success"
-          size="large"
-          :disabled="!hasClockIn || hasClockOut"
-          @click="clockOut"
-          class="punch-button"
-        >
-          <el-icon class="button-icon"><Timer /></el-icon>
+        <el-button type="success" size="large" :disabled="!hasClockIn || hasClockOut" @click="clockOut"
+          class="punch-button">
+          <el-icon class="button-icon">
+            <Timer />
+          </el-icon>
           下班打卡
         </el-button>
         <div class="status">
           <p class="status-title">今日状态：</p>
           <p v-if="hasClockIn" class="status-item">
-            <el-icon class="status-icon"><CircleCheck /></el-icon>
-            已打上班卡：{{ clockInTime }}
+            <el-icon class="status-icon">
+              <CircleCheck />
+            </el-icon>
+            已打上班卡：{{ formatUTC(clockInTime) }}
           </p>
           <p v-if="hasClockOut" class="status-item">
-            <el-icon class="status-icon"><CircleCheck /></el-icon>
-            已打下班卡：{{ clockOutTime }}
+            <el-icon class="status-icon">
+              <CircleCheck />
+            </el-icon>
+            已打下班卡：{{ formatUTC(clockOutTime) }}
           </p>
           <p v-if="!hasClockIn" class="status-item">
-            <el-icon class="status-icon"><Warning /></el-icon>
+            <el-icon class="status-icon">
+              <Warning />
+            </el-icon>
             未打上班卡
           </p>
         </div>
       </div>
-            <!-- 历史考勤记录 -->
-            <div class="history-section">
+      <!-- 历史考勤记录 -->
+      <div class="history-section">
         <div class="filter-container">
-          <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            @change="handleDateChange"
-          />
+          <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
+            end-placeholder="结束日期" value-format="YYYY-MM-DD" @change="handleDateChange" />
         </div>
-        
-        <el-table
-          :data="attendanceList"
-          v-loading="loading"
-          border
-          stripe
-          style="width: 100%"
-        >
+
+        <el-table :data="attendanceList" v-loading="loading" border stripe style="width: 100%">
           <el-table-column prop="createTime" label="打卡时间" width="180">
             <template #default="{ row }">
-              {{ formatTime(row.createTime) }}
+              {{ formatUTC(row.createTime) }}
             </template>
           </el-table-column>
           <el-table-column prop="type" label="类型" width="120" />
@@ -89,15 +66,9 @@ TODO⠀⠀⠰⢷⢿⠄
         </el-table>
 
         <div class="pagination-container">
-          <el-pagination
-            v-model:current-page="pagination.pageNum"
-            v-model:page-size="pagination.pageSize"
-            :total="pagination.total"
-            :page-sizes="[10, 20, 50]"
-            layout="total, sizes, prev, pager, next, jumper"
-            @size-change="loadAttendanceData"
-            @current-change="loadAttendanceData"
-          />
+          <el-pagination v-model:current-page="pagination.pageNum" v-model:page-size="pagination.pageSize"
+            :total="pagination.total" :page-sizes="[10, 20, 50]" layout="total, sizes, prev, pager, next, jumper"
+            @size-change="loadAttendanceData" @current-change="loadAttendanceData" />
         </div>
       </div>
     </el-card>
@@ -105,16 +76,18 @@ TODO⠀⠀⠰⢷⢿⠄
 </template>
 
 <script setup lang="ts">
-import { ref,onMounted } from 'vue'
+import { formatUTC } from '@/utils/format'
+import { CircleCheck, Clock, Timer, Warning } from '@element-plus/icons-vue'
+
+import dayjs from 'dayjs'
 import { ElMessage } from 'element-plus'
-import { Clock, Timer, CircleCheck, Warning } from '@element-plus/icons-vue'
-import { 
-  getPersonalAttendanceSvc,
-  clockInSvc
+import { onMounted, ref } from 'vue'
+import {
+  clockInSvc,
+  getPersonalAttendanceSvc
 } from '../../service/modules/attendance/attendance'
 import type { IAttendanceResp } from '../../service/modules/attendance/types'
 import { useUserStore } from '../../store/main/user'
-import dayjs from 'dayjs'
 // 打卡状态
 const userStore = useUserStore()
 const userId = userStore.userId
@@ -143,14 +116,14 @@ async function loadTodayStatus() {
     const res = await getPersonalAttendanceSvc({
       userId,
       startDate: today,
-      endDate: today
     })
-    
+
     if (res.code === 200) {
       const records = res.data || []
+      console.log(records)
       hasClockIn.value = records.some(r => r.type === '上班')
       hasClockOut.value = records.some(r => r.type === '下班')
-      
+
       const clockInRecord = records.find(r => r.type === '上班')
       const clockOutRecord = records.find(r => r.type === '下班')
       clockInTime.value = clockInRecord?.createTime || ''
@@ -160,6 +133,7 @@ async function loadTodayStatus() {
     ElMessage.error('获取当天状态失败')
   }
 }
+
 
 // 加载历史记录
 async function loadAttendanceData() {
@@ -176,7 +150,6 @@ async function loadAttendanceData() {
     const res = await getPersonalAttendanceSvc(params)
     if (res.code === 200) {
       attendanceList.value = res.data || []
-      pagination.value.total = res.total || 0
     }
   } catch (error) {
     ElMessage.error('加载历史记录失败')
@@ -212,10 +185,6 @@ async function clockOut() {
   }
 }
 
-// 辅助方法
-function formatTime(time: string) {
-  return dayjs(time).format('YYYY-MM-DD HH:mm:ss')
-}
 
 function statusTagType(status: string) {
   return status === '正常' ? 'success' : 'danger'
@@ -241,6 +210,7 @@ onMounted(() => {
   display: flex;
   justify-content: flex-end;
 }
+
 .attendance-management {
   max-width: 1200px;
   margin: 30px auto;
@@ -319,12 +289,12 @@ onMounted(() => {
     align-items: flex-start;
     gap: 15px;
   }
-  
+
   .status {
     margin-left: 0;
     margin-top: 15px;
   }
-  
+
   .punch-button {
     width: 100%;
     justify-content: center;

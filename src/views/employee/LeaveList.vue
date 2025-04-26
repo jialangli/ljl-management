@@ -3,19 +3,11 @@
     <el-card class="card">
       <div slot="header" class="card-header">
         <span>请假申请管理</span>
-        <el-button class="add-button" type="primary" @click="showApplyDialog = true" icon="el-icon-plus" size="small">
-          新建请假申请
-        </el-button>
+
       </div>
 
       <!-- 请假列表 -->
-      <el-table
-        :data="leaveList"
-        stripe
-        border
-        v-loading="loading"
-        style="width: 100%; margin-top: 20px"
-      >
+      <el-table :data="leaveList" stripe border v-loading="loading" style="width: 100%; margin-top: 20px">
         <el-table-column prop="type" label="请假类型" width="120">
           <template #default="{ row }">
             {{ typeMap[row.type] }}
@@ -38,10 +30,7 @@
         </el-table-column>
         <el-table-column prop="status" label="审批状态" width="120">
           <template #default="{ row }">
-            <el-tag
-              :type="statusType(row.status)"
-              disable-transitions
-            >
+            <el-tag :type="statusType(row.status)" disable-transitions>
               {{ statusMap[row.status] }}
             </el-tag>
           </template>
@@ -51,75 +40,34 @@
 
       <!-- 分页 -->
       <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="pagination.pageNum"
-          v-model:page-size="pagination.pageSize"
-          :total="pagination.total"
-          :page-sizes="[5, 10, 20]"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="loadLeaveData"
-          @current-change="loadLeaveData"
-        />
+        <el-pagination v-model:current-page="pagination.pageNum" v-model:page-size="pagination.pageSize"
+          :total="pagination.total" :page-sizes="[5, 10, 20]" layout="total, sizes, prev, pager, next, jumper"
+          @size-change="loadLeaveData" @current-change="loadLeaveData" />
       </div>
     </el-card>
 
     <!-- 新建请假申请弹窗 -->
-    <el-dialog
-      title="新建请假申请"
-      :model-value="showApplyDialog"
-      width="500px"
-      @close="resetForm"
-    >
-      <el-form
-        :model="form"
-        :rules="rules"
-        ref="formRef"
-        label-width="100px"
-      >
+    <el-dialog title="新建请假申请" :model-value="showApplyDialog" width="500px" @close="resetForm">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="请假类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择请假类型">
-            <el-option 
-              v-for="item in typeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
+            <el-option v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item label="开始时间" prop="startTime">
-          <el-date-picker
-            v-model="form.startTime"
-            type="date"
-            placeholder="请选择开始日期"
-            style="width: 100%"
-            :picker-options="startPickerOptions"
-            @change="handleDateChange"
-            value-format="YYYY-MM-DD"
-          />
+          <el-date-picker v-model="form.startTime" type="date" placeholder="请选择开始日期" style="width: 100%"
+            :picker-options="startPickerOptions" @change="handleDateChange" value-format="YYYY-MM-DD" />
         </el-form-item>
         <el-form-item label="结束时间" prop="endTime">
-          <el-date-picker
-            v-model="form.endTime"
-            type="date"
-            placeholder="请选择结束日期"
-            style="width: 100%"
-            :picker-options="endPickerOptions"
-            @change="handleDateChange"
-            value-format="YYYY-MM-DD"
-          />
+          <el-date-picker v-model="form.endTime" type="date" placeholder="请选择结束日期" style="width: 100%"
+            :picker-options="endPickerOptions" @change="handleDateChange" value-format="YYYY-MM-DD" />
         </el-form-item>
         <el-form-item label="请假天数">
           <el-input-number :model-value="formDays" :min="1" :disabled="true" />
         </el-form-item>
         <el-form-item label="事由" prop="reason">
-          <el-input
-            type="textarea"
-            v-model="form.reason"
-            placeholder="请输入请假事由"
-            :rows="3"
-            :maxlength="200"
-            show-word-limit
-          />
+          <el-input type="textarea" v-model="form.reason" placeholder="请输入请假事由" :rows="3" :maxlength="200"
+            show-word-limit />
         </el-form-item>
       </el-form>
 
@@ -132,16 +80,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
 import type { FormRules } from 'element-plus'
-import { useUserStore } from '../../store/main/user'
-import { 
+import { ElMessage } from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue'
+import {
   getPersonalLeaveListSvc,
   submitLeaveRequestSvc
 } from '../../service/modules/leave/leave'
 import type { ILeaveRequestResp } from '../../service/modules/leave/types'
+import { useUserStore } from '../../store/main/user'
 
 type DatePickerOptions = {
   disabledDate: (date: Date) => boolean
@@ -156,14 +104,14 @@ const rules = reactive<FormRules>({
   type: [{ required: true, message: '请选择请假类型', trigger: 'change' }],
   startTime: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
   endTime: [{ required: true, message: '请选择结束时间', trigger: 'change' }],
-  reason: [{ 
-    required: true, 
-    message: '请输入请假事由', 
-    trigger: 'blur' 
-  }, { 
-    max: 200, 
-    message: '备注最多200字', 
-    trigger: 'blur' 
+  reason: [{
+    required: true,
+    message: '请输入请假事由',
+    trigger: 'blur'
+  }, {
+    max: 200,
+    message: '备注最多200字',
+    trigger: 'blur'
   }]
 })
 
@@ -231,7 +179,7 @@ const handleDateChange = () => {
   if (form.startTime && form.endTime) {
     const start = dayjs(form.startTime)
     const end = dayjs(form.endTime)
-    
+
     if (end.isBefore(start)) {
       form.endTime = form.startTime
     }
@@ -264,7 +212,7 @@ const loadLeaveData = async () => {
 const submitForm = async () => {
   try {
     await formRef.value.validate()
-    
+
     // 格式化日期时间为完整格式
     const params = {
       type: Number(form.type),
@@ -274,7 +222,7 @@ const submitForm = async () => {
     }
 
     console.log('提交参数：', params)
-    
+
     const res = await submitLeaveRequestSvc(params)
     if (res.code === 200) {
       ElMessage.success('提交成功')
@@ -349,12 +297,14 @@ onMounted(() => {
 :deep(.el-textarea) textarea {
   --el-input-textarea-rows: 3;
 }
+
 .add-button {
   margin-left: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 .el-date-editor {
   width: 100%;
 }

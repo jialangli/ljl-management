@@ -3,28 +3,19 @@
     <el-card class="card">
       <div slot="header" class="card-header">
         <span>加班申请管理</span>
-        <el-button type="primary" @click="showApplyDialog = true" icon="el-icon-plus" size="small">
-          新建加班申请
-        </el-button>
+
+
       </div>
 
       <!-- 加班列表 -->
-      <el-table
-        :data="overtimeList"
-        stripe
-        border
-        style="width: 100%; margin-top: 20px"
-      >
+      <el-table :data="overtimeList" stripe border style="width: 100%; margin-top: 20px">
         <el-table-column prop="type" label="加班类型" width="120" />
         <el-table-column prop="startTime" label="开始时间" width="180" />
         <el-table-column prop="endTime" label="结束时间" width="180" />
         <el-table-column prop="hours" label="加班时长(小时)" width="140" />
         <el-table-column prop="status" label="审批状态" width="120">
           <template #default="{ row }">
-            <el-tag
-              :type="statusType(row.status)"
-              disable-transitions
-            >
+            <el-tag :type="statusType(row.status)" disable-transitions>
               {{ row.status }}
             </el-tag>
           </template>
@@ -34,18 +25,8 @@
     </el-card>
 
     <!-- 新建加班申请弹窗 -->
-    <el-dialog
-      title="新建加班申请"
-      :model-value="showApplyDialog"
-      width="500px"
-      @close="resetForm"
-    >
-      <el-form
-        :model="form"
-        :rules="rules"
-        ref="formRef"
-        label-width="100px"
-      >
+    <el-dialog title="新建加班申请" :model-value="showApplyDialog" width="500px" @close="resetForm">
+      <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="加班类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择加班类型">
             <el-option label="日常加班" value="日常加班" />
@@ -55,42 +36,18 @@
           </el-select>
         </el-form-item>
         <el-form-item label="开始时间" prop="startTime">
-          <el-date-picker
-            v-model="form.startTime"
-            type="datetime"
-            placeholder="请选择开始时间"
-            style="width: 100%"
-            :picker-options="startPickerOptions"
-            @change="handleTimeChange"
-          />
+          <el-date-picker v-model="form.startTime" type="datetime" placeholder="请选择开始时间" style="width: 100%"
+            :picker-options="startPickerOptions" @change="handleTimeChange" />
         </el-form-item>
         <el-form-item label="结束时间" prop="endTime">
-          <el-date-picker
-            v-model="form.endTime"
-            type="datetime"
-            placeholder="请选择结束时间"
-            style="width: 100%"
-            :picker-options="endPickerOptions"
-            @change="handleTimeChange"
-          />
+          <el-date-picker v-model="form.endTime" type="datetime" placeholder="请选择结束时间" style="width: 100%"
+            :picker-options="endPickerOptions" @change="handleTimeChange" />
         </el-form-item>
         <el-form-item label="加班时长" prop="hours">
-          <el-input-number
-            v-model="form.hours"
-            :min="0.5"
-            :max="24"
-            :precision="1"
-            :step="0.5"
-            :disabled="true"
-          />
+          <el-input-number v-model="form.hours" :min="0.5" :max="24" :precision="1" :step="0.5" :disabled="true" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
-          <el-input
-            type="textarea"
-            v-model="form.remark"
-            placeholder="请输入备注（可选）"
-            rows="3"
-          />
+          <el-input type="textarea" v-model="form.remark" placeholder="请输入备注（可选）" rows="3" />
         </el-form-item>
       </el-form>
 
@@ -103,8 +60,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { reactive, ref } from 'vue'
 
 interface OvertimeItem {
   id: number
@@ -235,15 +192,17 @@ function statusType(status: string) {
   border-radius: 10px;
   box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.1);
 }
+
 .card {
   padding: 30px;
   margin-bottom: 20px;
 }
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size:24px;
+  font-size: 24px;
   font-weight: 600;
   font-size: 18px;
 }
