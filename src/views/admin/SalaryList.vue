@@ -200,7 +200,7 @@ const loadSalaryList = async () => {
 
     if (res.code === 200) {
       salaryList.value = res.data || []
-      total.value = res.total || 0
+
     } else {
       ElMessage.error(res.message || '获取工资列表失败')
     }

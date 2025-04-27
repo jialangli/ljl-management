@@ -249,6 +249,11 @@ const loadEmployeeList = async () => {
     if (res.code === 200) {
       employeeList.value = res.data || []
 
+      // 转化角色
+      employeeList.value.forEach(item => {
+        item.role = item.role === 1 ? "管理员" : "普通员工";
+      });
+
       // 转化时间
       employeeList.value.forEach(item => {
         if (item.createTime) item.createTime = formatUTC(item.createTime)
@@ -272,6 +277,10 @@ const loadDepartmentList = async () => {
     const res = await getDepartmentListSvc({ pageNum: 1, pageSize: 1000 }) // 获取所有部门，或者按需分页
     if (res.code === 200) {
       departments.value = res.data || []
+
+
+
+
     } else {
       ElMessage.error('加载部门列表失败')
     }
