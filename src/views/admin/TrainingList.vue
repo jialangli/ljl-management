@@ -281,10 +281,9 @@ const handleViewDetail = async (row: ITrainingResp) => {
 
 // 用户ID转姓名
 const getUserName = (userId: string) => {
-  const user = userList.value.find(u => u.id === userId)
-  return user?.realName || `未知用户(${userId})`
+  const user = userList.value.find(u => u.id === userId.toString()) 
+  return user?.realName || user?.username || userId
 }
-
 // 时间格式化
 const formatTime = (time: string) => {
   return time ? dayjs(time).format('YYYY-MM-DD HH:mm') : '-'

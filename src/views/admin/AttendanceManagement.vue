@@ -313,7 +313,7 @@ const getStatusText = (status: string) => {
     early: '早退',
     absent: '缺勤'
   }
-  return texts[status] || '未知'
+  return texts[status] || status 
 }
 
 // 格式化日期时间
