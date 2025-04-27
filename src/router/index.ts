@@ -1,5 +1,6 @@
+import { localCache } from '@/utils/cache/cache'
+import { Account_Type } from '@/utils/cache/keys'
 import { createRouter, createWebHistory } from 'vue-router'
-// import { useUserStore } from '../store/main/user'
 
 // 基础路由（静态路由）
 const constantRoutes = [
@@ -81,9 +82,9 @@ const adminRoutes = [
         name: 'SystemSettings',
         component: () => import('../../src/views/admin/SystemSettings.vue'),
         meta: { title: '系统设置', roles: ['admin'] }
-      },
-    ],
-  },
+      }
+    ]
+  }
 ]
 
 // 员工路由，根路径为 /employee
@@ -134,37 +135,40 @@ const employeeRoutes = [
         name: 'OvertimeList',
         component: () => import('../../src/views/employee/OvertimeList.vue'),
         meta: { title: '加班申请', roles: ['employee'] }
-      },
-    ],
-  },
+      }
+    ]
+  }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: constantRoutes,
+  routes: constantRoutes
 })
 
-// 动态添加路由函数
 // 动态添加路由
 // router.js
 export function addRoutes(role) {
   // 先移除旧动态路由
-  const currentRoutes = router.getRoutes();
+  const currentRoutes = router.getRoutes()
   currentRoutes.forEach(route => {
     if (route.path.startsWith('/admin') || route.path.startsWith('/employee')) {
-      router.removeRoute(route.name); // 按 name 移除
+      router.removeRoute(route.name) // 按 name 移除
     }
-  });
+  })
 
   // 添加新路由
-  const routesToAdd = role === 'admin' ? adminRoutes : employeeRoutes;
+  const routesToAdd = role === 'admin' ? adminRoutes : employeeRoutes
   routesToAdd.forEach(route => {
-    router.addRoute(route); // 添加一级路由
-  });
+    router.addRoute(route) // 添加一级路由
+  })
 }
+
 router.beforeEach((to, from, next) => {
-  console.log(`尝试跳转到: ${to.path}`, to);
-  next(); // 确保调用 next()，否则会卡住
-});
+  next() // 确保调用 next()，否则会卡住
+})
+
+// 刷新加载路由
+const role = localCache.getCache(Account_Type)
+if (role) addRoutes(role)
 
 export default router

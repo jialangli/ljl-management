@@ -2,39 +2,27 @@
   <div class="department-list">
     <!-- 搜索和操作栏 -->
     <div class="operation-bar">
-      <el-input
-        v-model="searchKeyword"
-        placeholder="请输入部门名称搜索"
-        class="search-input"
-        clearable
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      >
+      <el-input v-model="searchKeyword" placeholder="请输入部门名称搜索" class="search-input" clearable @clear="handleSearch"
+        @keyup.enter="handleSearch">
         <template #prefix>
-          <el-icon><Search /></el-icon>
+          <el-icon>
+            <Search />
+          </el-icon>
         </template>
       </el-input>
       <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>新增部门
+        <el-icon>
+          <Plus />
+        </el-icon>新增部门
       </el-button>
     </div>
 
     <!-- 部门列表表格 -->
-    <el-table
-      v-loading="loading"
-      :data="departmentList"
-      border
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="departmentList" border style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="部门名称" />
       <el-table-column prop="leaderName" label="部门主管" />
-      <el-table-column
-        prop="createTime"
-        label="创建时间"
-        width="180"
-        :formatter="formatDateColumn"
-      />
+      <el-table-column prop="createTime" label="创建时间" width="180" :formatter="formatDateColumn" />
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button-group>
@@ -51,61 +39,36 @@
 
     <!-- 分页 -->
     <div class="pagination">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+        :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+        @current-change="handleCurrentChange" />
     </div>
 
     <!-- 新增/编辑部门对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增部门' : '编辑部门'"
-      width="500px"
-    >
-    <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
-      <el-form-item label="部门名称" prop="name">
+    <el-dialog v-model="dialogVisible" :title="dialogType === 'add' ? '新增部门' : '编辑部门'" width="500px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+        <el-form-item label="部门名称" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
 
-        <el-form-item label="部门主管" prop="leaderName">
-          <el-input v-model="form.leaderName" />
+        <el-form-item label="部门主管" prop="leaderId">
+          <el-select v-model="form.leaderId" placeholder="请选择部门主管" @change="handleLeaderChange">
+            <el-option v-for="user in userList" :key="user.id" :label="user.realName" :value="user.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="创建时间" prop="createTime" v-if="dialogType === 'edit'">
-          <el-date-picker
-            v-model="form.createTime"
-            type="datetime"
-            placeholder="选择日期时间"
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-          />
+          <el-date-picker v-model="form.createTime" type="datetime" placeholder="选择日期时间" format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DDTHH:mm:ss" />
         </el-form-item>
         <el-form-item label="部门描述" prop="description">
-          <el-input
-            v-model="form.description"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入部门描述"
-          />
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入部门描述" />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">
-            确定
-          </el-button>
+          <el-button type="primary" @click="handleSubmit"> 确定 </el-button>
         </span>
       </template>
     </el-dialog>
@@ -113,19 +76,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus } from '@element-plus/icons-vue'
 import {
-  getDepartmentListSvc,
-  getDepartmentDetailSvc,
-  deleteDepartmentSvc,
   addDepartmentSvc,
+  deleteDepartmentSvc,
+  getDepartmentDetailSvc,
+  getDepartmentListSvc,
   updateDepartmentSvc,
   type IDepartmentListReq,
-  type IDepartmentResp,
-  type IDepartmentReq
+  type IDepartmentReq,
+  type IDepartmentResp
 } from '@/service/modules/department/department'
+import { getUserListSvc } from '@/service/modules/user/user'
+import { Plus, Search } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
+
+// 定义用户信息接口
+interface IUserInfoResp {
+  id: number
+  realName: string
+  username: string
+  // 其他可能的用户属性...
+}
 
 // 搜索关键词
 const searchKeyword = ref('')
@@ -133,6 +105,9 @@ const searchKeyword = ref('')
 // 表格数据
 const loading = ref(false)
 const departmentList = ref<IDepartmentResp[]>([])
+
+// 用户列表数据
+const userList = ref<IUserInfoResp[]>([])
 
 // 分页
 const currentPage = ref(1)
@@ -151,11 +126,13 @@ const form = reactive<{
   leaderId?: number
   leaderName: string
   description: string
+  createTime?: string
 }>({
   name: '',
   leaderId: undefined,
   leaderName: '',
-  description: ''
+  description: '',
+  createTime: undefined
 })
 
 // 表单验证规则
@@ -164,8 +141,8 @@ const rules = {
     { required: true, message: '请输入部门名称', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
   ],
-  leaderName: [
-    { required: true, message: '请输入部门主管', trigger: 'blur' }
+  leaderId: [
+    { required: true, message: '请选择部门主管', trigger: 'change' }
   ]
 }
 // Element Plus 表格列日期格式化
@@ -181,6 +158,36 @@ const formatDateColumn = (row: IDepartmentResp, column: any, cellValue: string) 
 const padZero = (num: number) => {
   return num < 10 ? `0${num}` : num
 }
+
+// 加载用户列表
+const loadUserList = async () => {
+  try {
+    // 假设用户列表接口需要分页参数
+    const res = await getUserListSvc({
+      pageNum: 1,
+      pageSize: 100 // 获取足够多的用户以供选择
+    })
+
+    if (res.code === 200) {
+      userList.value = res.data || []
+    } else {
+      ElMessage.error(res.message || '获取用户列表失败')
+    }
+  } catch (error) {
+    console.error('获取用户列表出错:', error)
+    ElMessage.error('请求用户列表出错')
+  }
+}
+
+// 处理部门主管选择变化
+const handleLeaderChange = (userId: number) => {
+  // 根据选择的用户ID，设置leaderName为对应用户的真实姓名
+  const selectedUser = userList.value.find(user => user.id === userId)
+  if (selectedUser) {
+    form.leaderName = selectedUser.realName
+  }
+}
+
 // 加载部门列表
 const loadDepartmentList = async () => {
   try {
@@ -225,6 +232,10 @@ const handleAdd = () => {
   form.leaderId = undefined
   form.leaderName = ''
   form.description = ''
+  form.createTime = undefined
+
+  // 确保用户列表已加载
+  loadUserList()
 }
 
 // 编辑部门
@@ -234,6 +245,9 @@ const handleEdit = async (row: IDepartmentResp) => {
     dialogType.value = 'edit'
     currentDepartmentId.value = row.id
 
+    // 确保用户列表已加载
+    await loadUserList()
+
     // 获取部门详情
     const res = await getDepartmentDetailSvc(row.id)
 
@@ -242,7 +256,8 @@ const handleEdit = async (row: IDepartmentResp) => {
       form.name = department.name
       form.leaderId = department.leaderId
       form.leaderName = department.leaderName || ''
-      form.description = '' // 根据实际接口调整
+      form.description = department.description || ''
+      form.createTime = department.createTime
       dialogVisible.value = true
     } else {
       ElMessage.error(res.message || '获取部门详情失败')
@@ -336,6 +351,8 @@ const handleCurrentChange = (val: number) => {
 // 初始化加载数据
 onMounted(() => {
   loadDepartmentList()
+  // 初始加载用户列表
+  loadUserList()
 })
 </script>
 
