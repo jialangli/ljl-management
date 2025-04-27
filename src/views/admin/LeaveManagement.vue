@@ -3,16 +3,12 @@
     <!-- 搜索和操作栏 -->
     <div class="operation-bar">
       <div class="search-area">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="请输入姓名/工号搜索"
-          class="search-input"
-          clearable
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        >
+        <el-input v-model="searchForm.keyword" placeholder="请输入姓名/工号搜索" class="search-input" clearable
+          @clear="handleSearch" @keyup.enter="handleSearch">
           <template #prefix>
-            <el-icon><Search /></el-icon>
+            <el-icon>
+              <Search />
+            </el-icon>
           </template>
         </el-input>
 
@@ -28,18 +24,14 @@
           <el-option label="已拒绝" :value="2" />
         </el-select>
 
-        <el-date-picker
-          v-model="searchForm.dateRange"
-          type="daterange"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          value-format="YYYY-MM-DD"
-          @change="handleSearch"
-        />
+        <el-date-picker v-model="searchForm.dateRange" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期"
+          value-format="YYYY-MM-DD" @change="handleSearch" />
       </div>
 
       <el-button type="primary" @click="handleExport">
-        <el-icon><Download /></el-icon>导出记录
+        <el-icon>
+          <Download />
+        </el-icon>导出记录
       </el-button>
     </div>
 
@@ -50,7 +42,9 @@
           <template #header>
             <div class="card-header">
               <span>待审批</span>
-              <el-icon><Timer /></el-icon>
+              <el-icon>
+                <Timer />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -64,7 +58,9 @@
           <template #header>
             <div class="card-header">
               <span>已通过</span>
-              <el-icon><CircleCheck /></el-icon>
+              <el-icon>
+                <CircleCheck />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -78,7 +74,9 @@
           <template #header>
             <div class="card-header">
               <span>已拒绝</span>
-              <el-icon><CircleClose /></el-icon>
+              <el-icon>
+                <CircleClose />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -92,7 +90,9 @@
           <template #header>
             <div class="card-header">
               <span>本月请假</span>
-              <el-icon><Calendar /></el-icon>
+              <el-icon>
+                <Calendar />
+              </el-icon>
             </div>
           </template>
           <div class="card-content">
@@ -104,12 +104,7 @@
     </el-row>
 
     <!-- 请假记录表格 -->
-    <el-table
-      v-loading="loading"
-      :data="leaveList"
-      border
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="leaveList" border style="width: 100%">
       <el-table-column prop="id" label="申请编号" width="100" />
       <el-table-column prop="userId" label="用户ID" width="100" />
       <el-table-column prop="realName" label="姓名" width="120" />
@@ -141,38 +136,28 @@
               拒绝
             </el-button>
           </el-button-group>
-          <el-button v-else type="primary" size="small" @click="handleView(row)">
-            查看
-          </el-button>
+          <el-button-group v-else>
+            <el-button type="primary" size="small" @click="handleView(row)">
+              查看
+            </el-button>
+            <el-button type="danger" size="small" @click="handleDelete(row)">
+              删除
+            </el-button>
+          </el-button-group>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 分页 -->
     <div class="pagination">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+        :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+        @current-change="handleCurrentChange" />
     </div>
 
     <!-- 审批对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'approve' ? '通过申请' : '拒绝申请'"
-      width="500px"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
+    <el-dialog v-model="dialogVisible" :title="dialogType === 'approve' ? '通过申请' : '拒绝申请'" width="500px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="申请编号">
           <el-input v-model="form.id" disabled />
         </el-form-item>
@@ -189,35 +174,33 @@
           <el-input v-model="form.reason" type="textarea" :rows="3" disabled />
         </el-form-item>
         <el-form-item label="审批意见" prop="comment">
-          <el-input
-            v-model="form.comment"
-            type="textarea"
-            :rows="3"
-            :placeholder="dialogType === 'approve' ? '请输入通过意见' : '请输入拒绝原因'"
-          />
+          <el-input v-model="form.comment" type="textarea" :rows="3"
+            :placeholder="dialogType === 'approve' ? '请输入通过意见' : '请输入拒绝原因'" />
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">
-            确定
-          </el-button>
+          <el-button type="primary" @click="handleSubmit"> 确定 </el-button>
         </span>
       </template>
     </el-dialog>
 
     <!-- 查看详情对话框 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="请假详情"
-      width="600px"
-    >
+    <el-dialog v-model="detailVisible" title="请假详情" width="600px">
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="申请编号">{{ currentLeave.id }}</el-descriptions-item>
-        <el-descriptions-item label="申请人">{{ currentLeave.realName }}</el-descriptions-item>
-        <el-descriptions-item label="用户名">{{ currentLeave.username }}</el-descriptions-item>
-        <el-descriptions-item label="用户ID">{{ currentLeave.userId }}</el-descriptions-item>
+        <el-descriptions-item label="申请编号">{{
+          currentLeave.id
+        }}</el-descriptions-item>
+        <el-descriptions-item label="申请人">{{
+          currentLeave.realName
+        }}</el-descriptions-item>
+        <el-descriptions-item label="用户名">{{
+          currentLeave.username
+        }}</el-descriptions-item>
+        <el-descriptions-item label="用户ID">{{
+          currentLeave.userId
+        }}</el-descriptions-item>
         <el-descriptions-item label="请假类型">
           <el-tag :type="getTypeTag(currentLeave.type)">
             {{ getTypeText(currentLeave.type) }}
@@ -229,34 +212,42 @@
           </el-tag>
         </el-descriptions-item>
         <el-table-column label="开始时间" width="180">
-    <template #default="{ row }">
-      {{ formatDateTime(row.startTime) }}
-    </template>
-  </el-table-column>
-  <el-table-column label="结束时间" width="180">
-    <template #default="{ row }">
-      {{ formatDateTime(row.endTime) }}
-    </template>
-  </el-table-column>
-        <el-descriptions-item label="申请时间">{{ currentLeave.createTime }}</el-descriptions-item>
-        <el-descriptions-item label="请假原因" :span="2">{{ currentLeave.reason }}</el-descriptions-item>
-        <el-descriptions-item label="审批意见" :span="2">{{ currentLeave.comment || '无' }}</el-descriptions-item>
+          <template #default="{ row }">
+            {{ formatDateTime(row.startTime) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="结束时间" width="180">
+          <template #default="{ row }">
+            {{ formatDateTime(row.endTime) }}
+          </template>
+        </el-table-column>
+        <el-descriptions-item label="申请时间">{{
+          currentLeave.createTime
+        }}</el-descriptions-item>
+        <el-descriptions-item label="请假原因" :span="2">{{
+          currentLeave.reason
+        }}</el-descriptions-item>
+        <el-descriptions-item label="审批意见" :span="2">{{
+          currentLeave.comment || "无"
+        }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Download, Timer, CircleCheck, CircleClose, Calendar } from '@element-plus/icons-vue'
 import {
+  deleteLeaveSvc,
   getLeaveListSvc,
   updateLeaveStatusSvc,
   type ILeaveListReq,
   type ILeaveRequestResp,
   type ILeaveStatusUpdateReq
-} from '@/service/modules/leave/leave'
+} from '@/service/modules/leave/leave';
+import { formatUTC } from '@/utils/format';
+import { Calendar, CircleCheck, CircleClose, Download, Search, Timer } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { onMounted, reactive, ref } from 'vue';
 
 // 日期时间格式化函数
 const formatDateTime = (dateString: string) => {
@@ -393,7 +384,13 @@ const loadLeaveData = async () => {
 
     if (res.code === 200) {
       leaveList.value = res.data || []
-      total.value = res.total || 0
+
+
+      // 修改时间格式
+      leaveList.value.forEach(item => {
+        if (item.startTime) item.startTime = formatUTC(item.startTime)
+        if (item.endTime) item.endTime = formatUTC(item.endTime)
+      });
 
       // 更新统计信息
       updateStatistics(res.data || [])
@@ -424,6 +421,7 @@ const updateStatistics = (data: ILeaveRequestResp[]) => {
     return date.getMonth() + 1 === currentMonth && date.getFullYear() === currentYear
   }).length
 }
+
 
 // 搜索
 const handleSearch = () => {
@@ -466,6 +464,34 @@ const handleReject = (row: ILeaveRequestResp) => {
 const handleView = (row: ILeaveRequestResp) => {
   currentLeave.value = { ...row }
   detailVisible.value = true
+}
+
+
+// 处理删除
+const handleDelete = async (row: ILeaveRequestResp) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除${row.realName}的请假记录吗？`,
+      '警告',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
+
+
+    const res = await deleteLeaveSvc(row.id)
+
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadLeaveData()
+    } else {
+      ElMessage.error(res.message || '删除失败')
+    }
+  } catch (error) {
+    // 用户取消删除不做任何操作
+  }
 }
 
 // 提交审批
@@ -550,7 +576,7 @@ onMounted(() => {
 .number {
   font-size: 24px;
   font-weight: bold;
-  color: #409EFF;
+  color: #409eff;
 }
 
 .unit {

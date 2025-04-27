@@ -1,13 +1,9 @@
 import { departmentPath } from '@/service/config/types'
 import createSvcRequest from '@/service/request'
 import type NetResponse from '@/service/request/response'
-import _ from "@/"
+// import _ from "@/"
 
-import type {
-  IDepartmentListReq,
-  IDepartmentReq,
-  IDepartmentResp,
-} from './types'
+import type { IDepartmentListReq, IDepartmentReq, IDepartmentResp } from './types'
 
 // 创建部门服务实例
 const departmentSvc = createSvcRequest(departmentPath)
@@ -19,7 +15,7 @@ const departmentSvc = createSvcRequest(departmentPath)
 export function getDepartmentListSvc(params?: IDepartmentListReq) {
   return departmentSvc.POST<NetResponse<IDepartmentResp[]>>({
     url: '/list',
-    data: params,
+    data: params
   })
 }
 
@@ -29,7 +25,7 @@ export function getDepartmentListSvc(params?: IDepartmentListReq) {
  */
 export function getDepartmentDetailSvc(id: number) {
   return departmentSvc.GET<NetResponse<IDepartmentResp>>({
-    url: `/${id}`,
+    url: `/${id}`
   })
 }
 
@@ -39,7 +35,7 @@ export function getDepartmentDetailSvc(id: number) {
  */
 export function deleteDepartmentSvc(id: number) {
   return departmentSvc.DELETE<NetResponse<null>>({
-    url: `/${id}`,
+    url: `/${id}`
   })
 }
 
@@ -50,7 +46,7 @@ export function deleteDepartmentSvc(id: number) {
 export function addDepartmentSvc(data: IDepartmentReq) {
   return departmentSvc.POST<NetResponse<null>>({
     url: '',
-    data,
+    data
   })
 }
 
@@ -62,6 +58,6 @@ export function addDepartmentSvc(data: IDepartmentReq) {
 export function updateDepartmentSvc(id: number, data: IDepartmentReq) {
   return departmentSvc.PUT<NetResponse<null>>({
     url: `/${id}`,
-    data,
+    data
   })
 }

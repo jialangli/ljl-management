@@ -3,46 +3,35 @@
     <!-- 搜索区域 -->
     <div class="operation-bar">
       <div class="search-area">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="请输入员工ID"
-          class="search-input"
-          clearable
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        >
+        <el-input v-model="searchForm.keyword" placeholder="请输入员工ID" class="search-input" clearable
+          @clear="handleSearch" @keyup.enter="handleSearch">
           <template #prefix>
-            <el-icon><Search /></el-icon>
+            <el-icon>
+              <Search />
+            </el-icon>
           </template>
         </el-input>
 
-        <el-date-picker
-          v-model="searchForm.dateRange"
-          type="daterange"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          :shortcuts="dateShortcuts"
-          value-format="YYYY-MM-DD"
-        />
+        <el-date-picker v-model="searchForm.dateRange" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期"
+          :shortcuts="dateShortcuts" value-format="YYYY-MM-DD" />
 
-        <el-select
-          v-model="searchForm.status"
-          placeholder="选择状态"
-          clearable
-          @change="handleSearch"
-        >
+        <el-select v-model="searchForm.status" placeholder="选择状态" clearable @change="handleSearch">
           <el-option label="正常" value="normal" />
           <el-option label="迟到" value="late" />
           <el-option label="早退" value="early" />
         </el-select>
 
         <el-button type="primary" @click="handleSearch">
-          <el-icon><Search /></el-icon>搜索
+          <el-icon>
+            <Search />
+          </el-icon>搜索
         </el-button>
       </div>
 
       <el-button type="success" @click="handleExport">
-        <el-icon><Download /></el-icon>导出
+        <el-icon>
+          <Download />
+        </el-icon>导出
       </el-button>
     </div>
 
@@ -53,7 +42,9 @@
           <el-card shadow="hover">
             <div class="card-header">
               <span>今日出勤</span>
-              <el-icon><User /></el-icon>
+              <el-icon>
+                <User />
+              </el-icon>
             </div>
             <div class="card-content">
               <span class="number">{{ statistics.todayPresent }}</span>
@@ -65,7 +56,9 @@
           <el-card shadow="hover">
             <div class="card-header">
               <span>今日迟到</span>
-              <el-icon><Timer /></el-icon>
+              <el-icon>
+                <Timer />
+              </el-icon>
             </div>
             <div class="card-content">
               <span class="number">{{ statistics.todayLate }}</span>
@@ -77,7 +70,9 @@
           <el-card shadow="hover">
             <div class="card-header">
               <span>今日早退</span>
-              <el-icon><Timer /></el-icon>
+              <el-icon>
+                <Timer />
+              </el-icon>
             </div>
             <div class="card-content">
               <span class="number">{{ statistics.todayEarly }}</span>
@@ -89,7 +84,9 @@
           <el-card shadow="hover">
             <div class="card-header">
               <span>今日缺勤</span>
-              <el-icon><Close /></el-icon>
+              <el-icon>
+                <Close />
+              </el-icon>
             </div>
             <div class="card-content">
               <span class="number">{{ statistics.todayAbsent }}</span>
@@ -101,12 +98,7 @@
     </div>
 
     <!-- 考勤列表表格 -->
-    <el-table
-      v-loading="loading"
-      :data="attendanceList"
-      border
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="attendanceList" border style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="realName" label="姓名" width="200" />
       <el-table-column prop="username" label="用户名" width="200" />
@@ -150,39 +142,20 @@
 
     <!-- 分页 -->
     <div class="pagination">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+        :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+        @current-change="handleCurrentChange" />
     </div>
 
     <!-- 编辑考勤记录对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      title="编辑考勤记录"
-      width="500px"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
+    <el-dialog v-model="dialogVisible" title="编辑考勤记录" width="500px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="员工姓名">
           <el-input v-model="form.realName" disabled />
         </el-form-item>
         <el-form-item label="打卡时间" prop="clockIn">
-          <el-date-picker
-            v-model="form.clockIn"
-            type="datetime"
-            placeholder="选择打卡时间"
-            value-format="YYYY-MM-DDTHH:mm:ss"
-          />
+          <el-date-picker v-model="form.clockIn" type="datetime" placeholder="选择打卡时间"
+            value-format="YYYY-MM-DDTHH:mm:ss" />
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-select v-model="form.status" placeholder="请选择状态">
@@ -196,9 +169,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">
-            确定
-          </el-button>
+          <el-button type="primary" @click="handleSubmit"> 确定 </el-button>
         </span>
       </template>
     </el-dialog>
@@ -206,14 +177,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Download, User, Timer, Close } from '@element-plus/icons-vue'
 import {
+  deleteAttendanceSvc,
   getAttendanceListSvc,
   type IAttendanceListReq,
   type IAttendanceResp
 } from '@/service/modules/attendance/attendance'
+import { Close, Download, Search, Timer, User } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
 
 // 搜索表单
 const searchForm = reactive({
@@ -313,7 +285,7 @@ const getStatusText = (status: string) => {
     early: '早退',
     absent: '缺勤'
   }
-  return texts[status] || status 
+  return texts[status] || status
 }
 
 // 格式化日期时间
@@ -418,10 +390,15 @@ const handleDelete = async (row: IAttendanceResp) => {
         type: 'warning'
       }
     )
-    // TODO: 调用删除接口
-    ElMessage.warning('删除功能需要根据实际API实现')
-    // 模拟删除成功后刷新列表
-    loadAttendanceData()
+
+    const res = await deleteAttendanceSvc(row.id)
+
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadAttendanceData()
+    } else {
+      ElMessage.error(res.message || '删除失败')
+    }
   } catch (error) {
     // 用户取消删除不做任何操作
   }
@@ -434,7 +411,6 @@ const handleSubmit = async () => {
   try {
     await formRef.value.validate()
     // TODO: 调用编辑接口
-    ElMessage.warning('编辑功能需要根据实际API实现')
     dialogVisible.value = false
     loadAttendanceData()
   } catch (error) {
@@ -463,7 +439,7 @@ onMounted(() => {
 <style scoped>
 .attendance-management {
   padding: 20px;
-  height:100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -502,7 +478,7 @@ onMounted(() => {
 .number {
   font-size: 24px;
   font-weight: bold;
-  color: #409EFF;
+  color: #409eff;
 }
 
 .unit {

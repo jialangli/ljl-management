@@ -56,3 +56,12 @@ export function updateLeaveStatusSvc(id: number, data: ILeaveStatusUpdateReq) {
     data
   })
 }
+/**
+ * 删除请假信息
+ * @param id 请假记录ID
+ */
+export function deleteLeaveSvc(id: number) {
+  return leaveSvc.DELETE<NetResponse<null>>({
+    url: `/${id}`
+  })
+}

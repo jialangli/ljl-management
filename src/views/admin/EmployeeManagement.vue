@@ -3,39 +3,27 @@
     <!-- 搜索和操作栏 -->
     <div class="operation-bar">
       <div class="search-area">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="请输入姓名/工号搜索"
-          class="search-input"
-          clearable
-          @clear="handleSearch"
-          @keyup.enter="handleSearch"
-        >
+        <el-input v-model="searchForm.keyword" placeholder="请输入姓名/工号搜索" class="search-input" clearable
+          @clear="handleSearch" @keyup.enter="handleSearch">
           <template #prefix>
-            <el-icon><Search /></el-icon>
+            <el-icon>
+              <Search />
+            </el-icon>
           </template>
         </el-input>
         <el-select v-model="searchForm.deptId" placeholder="选择部门" clearable @change="handleSearch">
-          <el-option
-            v-for="dept in departments"
-            :key="dept.id"
-            :label="dept.name"
-            :value="dept.id"
-          />
+          <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
         </el-select>
       </div>
       <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>新增员工
+        <el-icon>
+          <Plus />
+        </el-icon>新增员工
       </el-button>
     </div>
 
     <!-- 员工列表表格 -->
-    <el-table
-      v-loading="loading"
-      :data="employeeList"
-      border
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="employeeList" border style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="username" label="用户名" width="120" />
       <el-table-column prop="realName" label="姓名" width="120" />
@@ -54,12 +42,7 @@
             <el-button type="success" size="small" @click="handleView(row)">
               详情
             </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleDelete(row)"
-
-            >
+            <el-button type="danger" size="small" @click="handleDelete(row)">
               删除
             </el-button>
           </el-button-group>
@@ -69,29 +52,14 @@
 
     <!-- 分页 -->
     <div class="pagination">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+        :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+        @current-change="handleCurrentChange" />
     </div>
 
     <!-- 新增/编辑员工对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增员工' : '编辑员工'"
-      width="600px"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="100px"
-      >
+    <el-dialog v-model="dialogVisible" :title="dialogType === 'add' ? '新增员工' : '编辑员工'" width="600px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="姓名" prop="realName">
@@ -113,12 +81,7 @@
           <el-col :span="12">
             <el-form-item label="所属部门" prop="deptId">
               <el-select v-model="form.deptId" placeholder="请选择部门">
-                <el-option
-                  v-for="dept in departments"
-                  :key="dept.id"
-                  :label="dept.name"
-                  :value="dept.id"
-                />
+                <el-option v-for="dept in departments" :key="dept.id" :label="dept.name" :value="dept.id" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -140,58 +103,65 @@
             </el-form-item>
           </el-col>
         </el-row>
-
       </el-form>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">
-            确定
-          </el-button>
+          <el-button type="primary" @click="handleSubmit"> 确定 </el-button>
         </span>
       </template>
     </el-dialog>
 
     <!-- 员工详情对话框 -->
-    <el-dialog
-      v-model="detailVisible"
-      title="员工详情"
-      width="800px"
-    >
+    <el-dialog v-model="detailVisible" title="员工详情" width="800px">
       <el-descriptions :column="2" border>
         <el-descriptions-item label="工号">{{ currentEmployee.id }}</el-descriptions-item>
-        <el-descriptions-item label="用户名">{{ currentEmployee.username }}</el-descriptions-item>
-        <el-descriptions-item label="姓名">{{ currentEmployee.realName }}</el-descriptions-item>
-        <el-descriptions-item label="所属部门">{{ currentEmployee.deptName }}</el-descriptions-item>
-        <el-descriptions-item label="角色">{{ currentEmployee.role }}</el-descriptions-item>
-        <el-descriptions-item label="联系电话">{{ currentEmployee.phone }}</el-descriptions-item>
-        <el-descriptions-item label="邮箱">{{ currentEmployee.email }}</el-descriptions-item>
+        <el-descriptions-item label="用户名">{{
+          currentEmployee.username
+        }}</el-descriptions-item>
+        <el-descriptions-item label="姓名">{{
+          currentEmployee.realName
+        }}</el-descriptions-item>
+        <el-descriptions-item label="所属部门">{{
+          currentEmployee.deptName
+        }}</el-descriptions-item>
+        <el-descriptions-item label="角色">{{
+          currentEmployee.role
+        }}</el-descriptions-item>
+        <el-descriptions-item label="联系电话">{{
+          currentEmployee.phone
+        }}</el-descriptions-item>
+        <el-descriptions-item label="邮箱">{{
+          currentEmployee.email
+        }}</el-descriptions-item>
 
-        <el-descriptions-item label="备注" :span="2">{{ currentEmployee.remark }}</el-descriptions-item>
+        <el-descriptions-item label="备注" :span="2">{{
+          currentEmployee.remark
+        }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { Plus, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus } from '@element-plus/icons-vue'
+import { onMounted, reactive, ref } from 'vue'
 
 import {
-  getUserListSvc,
-  getUserDetailSvc,
-  deleteUserSvc,
   addUserSvc,
+  deleteUserSvc,
+  getUserDetailSvc,
+  getUserListSvc,
   updateUserSvc,
-  type IUserListReq,
-  type IUserListResp,
   type IAddUserReq,
-  type IUpdateUserReq
+  type IUserListReq,
+  type IUserListResp
 } from '@/service/modules/user/user'
 
-import { getDepartmentListSvc } from '@/service/modules/department/department' // 假设department模块有getList接口
 import type { IDepartmentResp } from '@/service/modules/department/department'
+import { getDepartmentListSvc } from '@/service/modules/department/department'; // 假设department模块有getList接口
+import { formatUTC } from '@/utils/format'
 
 
 // 搜索表单
@@ -278,7 +248,14 @@ const loadEmployeeList = async () => {
 
     if (res.code === 200) {
       employeeList.value = res.data || []
-      total.value = res.total || 0 //后端返回total
+
+      // 转化时间
+      employeeList.value.forEach(item => {
+        if (item.createTime) item.createTime = formatUTC(item.createTime)
+
+      });
+
+
     } else {
       ElMessage.error('加载员工列表失败')
     }
@@ -292,7 +269,7 @@ const loadEmployeeList = async () => {
 // 加载部门列表
 const loadDepartmentList = async () => {
   try {
-    const res = await getDepartmentListSvc({pageNum:1 ,pageSize:1000 }) // 获取所有部门，或者按需分页
+    const res = await getDepartmentListSvc({ pageNum: 1, pageSize: 1000 }) // 获取所有部门，或者按需分页
     if (res.code === 200) {
       departments.value = res.data || []
     } else {
@@ -324,14 +301,14 @@ const handleEdit = async (row: IUserListResp) => {
   try {
     const res = await getUserDetailSvc(row.id);
 
-  if(res.code === 200){
-    Object.assign(form, res.data);
+    if (res.code === 200) {
+      Object.assign(form, res.data);
 
-    }else{
+    } else {
       ElMessage.error('获取用户详情失败')
     }
-  }catch(error){
-      ElMessage.error('获取用户详情失败，请检查网络')
+  } catch (error) {
+    ElMessage.error('获取用户详情失败，请检查网络')
   }
 
 }
@@ -387,8 +364,8 @@ const handleSubmit = async () => {
       } catch (error) {
         ElMessage.error('操作失败，请检查网络')
       }
-    } else{
-       ElMessage.error('请检查表单')
+    } else {
+      ElMessage.error('请检查表单')
     }
   })
 }
@@ -463,4 +440,3 @@ onMounted(() => {
   margin: 20px 0;
 }
 </style>
-

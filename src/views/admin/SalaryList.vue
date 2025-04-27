@@ -2,38 +2,25 @@
   <div class="salary-management">
     <!-- 搜索和操作栏 -->
     <div class="operation-bar">
-      <el-input
-        v-model="searchKeyword"
-        placeholder="请输入员工姓名搜索"
-        class="search-input"
-        clearable
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      >
+      <el-input v-model="searchKeyword" placeholder="请输入员工姓名搜索" class="search-input" clearable @clear="handleSearch"
+        @keyup.enter="handleSearch">
         <template #prefix>
-          <el-icon><Search /></el-icon>
+          <el-icon>
+            <Search />
+          </el-icon>
         </template>
       </el-input>
-      <el-date-picker
-        v-model="searchMonth"
-        type="month"
-        placeholder="选择月份"
-        value-format="YYYY-MM"
-        style="margin-left: 10px; width: 150px"
-        @change="handleSearch"
-      />
+      <el-date-picker v-model="searchMonth" type="month" placeholder="选择月份" value-format="YYYY-MM"
+        style="margin-left: 10px; width: 150px" @change="handleSearch" />
       <el-button type="primary" @click="handleAdd" style="margin-left: 10px">
-        <el-icon><Plus /></el-icon>新增薪资记录
+        <el-icon>
+          <Plus />
+        </el-icon>新增薪资记录
       </el-button>
     </div>
 
     <!-- 工资列表表格 -->
-    <el-table
-      v-loading="loading"
-      :data="salaryList"
-      border
-      style="width: 100%"
-    >
+    <el-table v-loading="loading" :data="salaryList" border style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="realName" label="员工姓名" />
       <el-table-column prop="username" label="用户名" />
@@ -46,12 +33,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="month" label="月份" width="120" />
-      <el-table-column
-        prop="createTime"
-        label="创建时间"
-        width="180"
-        :formatter="formatDateColumn"
-      />
+      <el-table-column prop="createTime" label="创建时间" width="180" :formatter="formatDateColumn" />
       <el-table-column label="操作" width="200" fixed="right">
         <template #default="{ row }">
           <el-button-group>
@@ -68,29 +50,14 @@
 
     <!-- 分页 -->
     <div class="pagination">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+        :total="total" layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange"
+        @current-change="handleCurrentChange" />
     </div>
 
     <!-- 新增/编辑薪资记录对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
-      :title="dialogType === 'add' ? '新增薪资记录' : '编辑薪资记录'"
-      width="600px"
-    >
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-      >
+    <el-dialog v-model="dialogVisible" :title="dialogType === 'add' ? '新增薪资记录' : '编辑薪资记录'" width="600px">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="员工ID" prop="userId" v-if="dialogType === 'add'">
           <el-input-number v-model="form.userId" :min="1" />
         </el-form-item>
@@ -112,28 +79,18 @@
         </el-form-item>
 
         <el-form-item label="月份" prop="month">
-          <el-date-picker
-            v-model="form.month"
-            type="month"
-            placeholder="选择月份"
-            value-format="YYYY-MM"
-          />
+          <el-date-picker v-model="form.month" type="month" placeholder="选择月份" value-format="YYYY-MM" />
         </el-form-item>
         <!-- 实发工资预览 -->
         <el-form-item label="实发工资">
-          <el-input 
-            :value="(form.baseSalary + form.bonus - form.deduction).toFixed(2)" 
-            disabled 
-          />
+          <el-input :value="(form.baseSalary + form.bonus - form.deduction).toFixed(2)" disabled />
         </el-form-item>
       </el-form>
 
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleSubmit">
-            确定
-          </el-button>
+          <el-button type="primary" @click="handleSubmit"> 确定 </el-button>
         </span>
       </template>
     </el-dialog>
@@ -141,18 +98,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Plus } from '@element-plus/icons-vue'
 import {
-  getSalaryListSvc,
   addSalarySvc,
+  deleteSalarySvc,
+  getSalaryListSvc,
   updateSalarySvc,
   type ISalaryListReq,
-  type ISalaryResp,
   type ISalaryReq,
+  type ISalaryResp,
   type ISalaryUpdateReq
 } from '@/service/modules/salary/salary'
+import { Plus, Search } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { onMounted, reactive, ref } from 'vue'
 
 // 搜索关键词
 const searchKeyword = ref('')
@@ -296,7 +254,17 @@ const handleDelete = async (row: ISalaryResp) => {
         cancelButtonText: '取消',
         type: 'warning'
       }
-    )
+    );
+
+
+    const res = await deleteSalarySvc(row.id)
+
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadSalaryList()
+    } else {
+      ElMessage.error(res.message || '删除失败')
+    }
   } catch (error) {
     // 用户取消删除不做任何操作
   }

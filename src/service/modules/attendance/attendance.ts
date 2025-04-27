@@ -2,12 +2,7 @@ import { attendancePath } from '@/service/config/types'
 import createSvcRequest from '@/service/request'
 import type NetResponse from '@/service/request/response'
 
-import type {
-  IAttendanceListReq,
-  IAttendanceReq,
-  IAttendanceResp,
-  IClockInReq,
-} from './types'
+import type { IAttendanceListReq, IAttendanceReq, IAttendanceResp, IClockInReq } from './types'
 
 // 创建考勤服务实例
 const attendanceSvc = createSvcRequest(attendancePath)
@@ -19,7 +14,7 @@ const attendanceSvc = createSvcRequest(attendancePath)
 export function getAttendanceListSvc(params: IAttendanceListReq) {
   return attendanceSvc.POST<NetResponse<IAttendanceResp[]>>({
     url: '/list',
-    data: params,
+    data: params
   })
 }
 
@@ -30,7 +25,7 @@ export function getAttendanceListSvc(params: IAttendanceListReq) {
 export function getPersonalAttendanceSvc(params: IAttendanceReq) {
   return attendanceSvc.POST<NetResponse<IAttendanceResp[]>>({
     url: '/personal',
-    data: params,
+    data: params
   })
 }
 
@@ -41,6 +36,16 @@ export function getPersonalAttendanceSvc(params: IAttendanceReq) {
 export function clockInSvc(data: IClockInReq) {
   return attendanceSvc.POST<NetResponse<null>>({
     url: '',
-    data,
+    data
+  })
+}
+
+/**
+ * 删除考勤信息
+ * @param id 记录ID
+ */
+export function deleteAttendanceSvc(id: number) {
+  return attendanceSvc.DELETE<NetResponse<null>>({
+    url: `/${id}`
   })
 }

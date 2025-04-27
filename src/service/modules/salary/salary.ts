@@ -51,3 +51,13 @@ export function getPersonalSalaryListSvc(params: ISalaryListReq) {
     data: params
   })
 }
+
+/**
+ * 删除考勤信息
+ * @param id 记录ID
+ */
+export function deleteSalarySvc(id: number) {
+  return salarySvc.DELETE<NetResponse<null>>({
+    url: `/${id}`
+  })
+}
