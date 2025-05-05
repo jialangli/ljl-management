@@ -13,7 +13,7 @@
 
       <el-form :model="loginForm" :rules="rules" ref="loginFormRef" class="login-form">
         <el-form-item prop="username">
-          <el-input v-model="loginForm.username" :placeholder="loginType === 'admin' ? '管理员账号' : '员工工号'"
+          <el-input v-model="loginForm.username" :placeholder="loginType === 'admin' ? '管理员账号' : '员工账号'"
             prefix-icon="User" />
         </el-form-item>
         <el-form-item prop="password">
@@ -28,8 +28,8 @@
       </el-form>
 
       <div class="login-footer">
-        <p v-if="loginType === 'admin'">管理员默认账号：admin，密码：admin123</p>
-        <p v-else>员工请使用工号和密码登录</p>
+        <p v-if="loginType === 'admin'">管理员请使用用户名和密码登录</p>
+        <p v-else>员工请使用用户名和密码登录</p>
       </div>
     </div>
   </div>
@@ -74,7 +74,7 @@ const handleLogin = async () => {
       localCache.setCache(Account_TOKEN, res.data?.token);
       localCache.setCache(Account_Type, loginType.value);
 
-      const userInfo = await getUserDetailSvc(res.data?.userId);
+      const userInfo = await getUserDetailSvc(res.data?.user);
       if (userInfo.code !== 200) {
         ElMessage.error(userInfo.message || "登录失败");
         return;

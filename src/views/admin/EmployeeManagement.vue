@@ -4,7 +4,7 @@
     <div class="operation-bar">
       <div class="search-area">
         <el-input v-model="searchForm.keyword" placeholder="请输入姓名/工号搜索" class="search-input" clearable
-          @clear="handleSearch" @keyup.enter="handleSearch">
+          style="font-size: 16px; width: 500px" @clear="handleSearch" @keyup.enter="handleSearch">
           <template #prefix>
             <el-icon>
               <Search />
@@ -25,13 +25,13 @@
     <!-- 员工列表表格 -->
     <el-table v-loading="loading" :data="employeeList" border style="width: 100%">
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="username" label="用户名" width="120" />
-      <el-table-column prop="realName" label="姓名" width="120" />
-      <el-table-column prop="deptName" label="所属部门" width="120" />
-      <el-table-column prop="role" label="角色" width="120" />
-      <el-table-column prop="phone" label="联系电话" width="120" />
-      <el-table-column prop="email" label="邮箱" width="180" />
-      <el-table-column prop="createTime" label="创建时间" width="180" />
+      <el-table-column prop="username" label="用户名" width="180" />
+      <el-table-column prop="realName" label="姓名" width="160" />
+      <el-table-column prop="deptName" label="所属部门" width="160" />
+      <el-table-column prop="role" label="角色" width="150" />
+      <el-table-column prop="phone" label="联系电话" width="180" />
+      <el-table-column prop="email" label="邮箱" width="250" />
+      <el-table-column prop="createTime" label="创建时间" width="250" />
 
       <el-table-column label="操作" width="250" fixed="right">
         <template #default="{ row }">

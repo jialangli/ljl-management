@@ -129,12 +129,6 @@ const employeeRoutes = [
         name: 'TrainingList',
         component: () => import('../../src/views/employee/TrainingList.vue'),
         meta: { title: '培训管理', roles: ['employee'] }
-      },
-      {
-        path: 'OvertimeList',
-        name: 'OvertimeList',
-        component: () => import('../../src/views/employee/OvertimeList.vue'),
-        meta: { title: '加班申请', roles: ['employee'] }
       }
     ]
   }

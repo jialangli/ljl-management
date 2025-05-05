@@ -4,7 +4,7 @@
     <div class="operation-bar">
       <div class="search-area">
         <el-input v-model="searchForm.keyword" placeholder="请输入姓名/工号搜索" class="search-input" clearable
-          @clear="handleSearch" @keyup.enter="handleSearch">
+          style="font-size: 16px; width: 800px" @clear="handleSearch" @keyup.enter="handleSearch">
           <template #prefix>
             <el-icon>
               <Search />
@@ -276,7 +276,7 @@ const statistics = reactive({
   pending: 0,
   approved: 0,
   rejected: 0,
-  monthly: 0
+  monthly: 7
 })
 
 // 表格数据
@@ -414,12 +414,13 @@ const updateStatistics = (data: ILeaveRequestResp[]) => {
   statistics.pending = data.filter(item => item.status === 0).length
   statistics.approved = data.filter(item => item.status === 1).length
   statistics.rejected = data.filter(item => item.status === 2).length
+  statistics.monthly = statistics.approved + statistics.pending + statistics.rejected
 
-  // 计算本月请假数量
-  statistics.monthly = data.filter(item => {
-    const date = new Date(item.createTime)
-    return date.getMonth() + 1 === currentMonth && date.getFullYear() === currentYear
-  }).length
+  // // 计算本月请假数量
+  // statistics.monthly = data.filter(item => {
+  //   const date = new Date(item.createTime)
+  //   return date.getMonth() + 1 === currentMonth && date.getFullYear() === currentYear
+  // }).length
 }
 
 

@@ -16,7 +16,7 @@ export interface ISalaryResp {
   baseSalary: number
   bonus: number
   deduction: number
-  totalSalary: number
+  finalSalary: number
   month: string
   createTime: string
 }

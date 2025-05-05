@@ -31,12 +31,6 @@
           </el-icon>
           <template #title>请假申请</template>
         </el-menu-item>
-        <el-menu-item index="/employee/OvertimeList">
-          <el-icon>
-            <Clock />
-          </el-icon>
-          <template #title>加班申请</template>
-        </el-menu-item>
         <el-menu-item index="/employee/SalaryList">
           <el-icon>
             <Money />
@@ -122,9 +116,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="passwordDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="handlePasswordSubmit">
-            确定
-          </el-button>
+          <el-button type="primary" @click="handlePasswordSubmit"> 确定 </el-button>
         </span>
       </template>
     </el-dialog>
@@ -132,13 +124,12 @@
 </template>
 
 <script setup lang="ts">
-import { getUserAvatarSvc } from '@/service/modules/user/user';
-import { localCache } from '@/utils/cache/cache';
-import { Account_USER } from '@/utils/cache/keys';
+import { getUserAvatarSvc } from "@/service/modules/user/user";
+import { localCache } from "@/utils/cache/cache";
+import { Account_USER } from "@/utils/cache/keys";
 import {
   Calendar,
   CaretBottom,
-  Clock,
   DataLine,
   Lock,
   Money,
@@ -146,132 +137,125 @@ import {
   SwitchButton,
   Timer,
   User
-} from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { computed, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+} from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
+import { computed, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-const router = useRouter()
-const route = useRoute()
+const router = useRouter();
+const route = useRoute();
 
 // 侧边栏折叠状态
-const isCollapsed = ref(false)
+const isCollapsed = ref(false);
 const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value
-}
+  isCollapsed.value = !isCollapsed.value;
+};
 
 // 当前激活的菜单
-const activeMenu = computed(() => route.path)
+const activeMenu = computed(() => route.path);
 
 // 当前路由名称
 const currentRoute = computed(() => {
   const routeMap: Record<string, string> = {
-    '/employee/dashboard': '首页',
-    '/employee/UserProfile': '个人信息',
-    '/employee/AttendanceList': '考勤打卡',
-    '/employee/LeaveList': '请假申请',
-    '/employee/OvertimeList': '加班申请',
-    '/employee/SalaryList': '薪资查询',
-    '/employee/TrainingList': '培训记录'
-  }
-  return routeMap[route.path] || '首页'
-})
+    "/employee/dashboard": "首页",
+    "/employee/UserProfile": "个人信息",
+    "/employee/AttendanceList": "考勤打卡",
+    "/employee/LeaveList": "请假申请",
+    "/employee/SalaryList": "薪资查询",
+    "/employee/TrainingList": "培训记录",
+  };
+  return routeMap[route.path] || "首页";
+});
 const userInfo = ref({
-  realName: '',
-  avatar: null
+  realName: "",
+  avatar: null,
 });
 
 // 获取用户信息
 const user = localCache.getCache(Account_USER);
-userInfo.value.realName = user.realName || '暂无名字'
+userInfo.value.realName = user.realName || "暂无名字";
 
 // 获取用户头像
 if (user?.avatar) {
   getUserAvatarSvc(user.avatar)
-    .then(blob => {
+    .then((blob) => {
       // 生成临时 URL 并响应式更新
-      userInfo.value.avatar = URL.createObjectURL(blob)
+      userInfo.value.avatar = URL.createObjectURL(blob);
     })
-    .catch(error => {
-      console.log(error)
-      ElMessage.warning('头像加载失败')
-    })
+    .catch((error) => {
+      console.log(error);
+      ElMessage.warning("头像加载失败");
+    });
 }
 
 // 修改密码对话框
-const passwordDialogVisible = ref(false)
-const passwordFormRef = ref()
+const passwordDialogVisible = ref(false);
+const passwordFormRef = ref();
 const passwordForm = ref({
-  oldPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
+  oldPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
 
 const validateConfirmPassword = (rule: any, value: string, callback: any) => {
   if (value !== passwordForm.value.newPassword) {
-    callback(new Error('两次输入的密码不一致'))
+    callback(new Error("两次输入的密码不一致"));
   } else {
-    callback()
+    callback();
   }
-}
+};
 
 const passwordRules = {
-  oldPassword: [
-    { required: true, message: '请输入原密码', trigger: 'blur' }
-  ],
+  oldPassword: [{ required: true, message: "请输入原密码", trigger: "blur" }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能小于6位', trigger: 'blur' }
+    { required: true, message: "请输入新密码", trigger: "blur" },
+    { min: 6, message: "密码长度不能小于6位", trigger: "blur" },
   ],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
-    { validator: validateConfirmPassword, trigger: 'blur' }
-  ]
-}
+    { required: true, message: "请确认新密码", trigger: "blur" },
+    { validator: validateConfirmPassword, trigger: "blur" },
+  ],
+};
 
 // 处理个人信息
 const handleProfile = () => {
-  router.push('/employee/UserProfile')
-}
+  router.push("/employee/UserProfile");
+};
 
 // 处理修改密码
 const handlePassword = () => {
-  passwordDialogVisible.value = true
+  passwordDialogVisible.value = true;
   passwordForm.value = {
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  }
-}
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  };
+};
 
 // 提交修改密码
 const handlePasswordSubmit = async () => {
-  if (!passwordFormRef.value) return
+  if (!passwordFormRef.value) return;
 
   await passwordFormRef.value.validate((valid: boolean) => {
     if (valid) {
       // TODO: 调用修改密码接口
-      ElMessage.success('密码修改成功')
-      passwordDialogVisible.value = false
+      ElMessage.success("密码修改成功");
+      passwordDialogVisible.value = false;
     }
-  })
-}
+  });
+};
 
 // 处理退出登录
 const handleLogout = () => {
-  ElMessageBox.confirm(
-    '确定要退出登录吗？',
-    '提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
+  ElMessageBox.confirm("确定要退出登录吗？", "提示", {
+    confirmButtonText: "确定",
+    cancelButtonText: "取消",
+    type: "warning",
+  }).then(() => {
     // TODO: 调用退出登录接口
-    router.push('/login')
-  })
-}
+    router.push("/login");
+  });
+};
 </script>
 
 <style scoped>
@@ -323,7 +307,7 @@ const handleLogout = () => {
 }
 
 :deep(.el-menu-item.is-active) {
-  color: #409EFF;
+  color: #409eff;
   background-color: #263445;
 }
 
